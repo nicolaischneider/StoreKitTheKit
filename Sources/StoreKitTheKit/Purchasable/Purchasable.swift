@@ -28,3 +28,29 @@ enum Purchasable: String, CaseIterable, Equatable {
         return Purchasable(rawValue: id) != nil
     }
 }
+
+enum PurchasableType {
+    case nonConsumable
+}
+
+public struct Purchasable2 {
+    let bundleId: String
+    let type: PurchasableType
+}
+
+public class PurchasableManager: @unchecked Sendable {
+    
+    public static let shared = PurchasableManager()
+    
+    var purchasableItems: [String: Purchasable2] = [:]
+    
+    public func register(purchasableItems: [Purchasable2]) {
+        for item in purchasableItems {
+            self.purchasableItems[item.bundleId] = item
+        }
+    }
+    
+    public func productIDExists(_ id: String) -> Bool {
+        return purchasableItems[id] != nil
+    }
+}

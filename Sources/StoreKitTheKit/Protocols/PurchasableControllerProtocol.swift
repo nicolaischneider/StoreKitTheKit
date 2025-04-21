@@ -18,17 +18,17 @@ protocol PurchasableControllerProtocol {
 
 extension PurchasableControllerProtocol {
     
-    func purchase(item: Purchasable) {
-        guard !StoreManager.shared.userHasAccessTo(element: item) else {
-            Logger.purchase.addLog("User has already access to Purchasable.")
+    /*func purchase(item: Purchasable) {
+        guard !StoreKitTheKit.shared.userHasAccessTo(element: item) else {
+            // Logger.purchase.addLog("User has already access to Purchasable.")
             return
         }
         
         showLoadingPurchaseView(true)
         
         Task {
-            let purchaseState = await StoreManager.shared.purchaseElement(element: item)
-            handlePurchaseResult(purchaseState)
+            let purchaseState = await StoreKitTheKit.shared.purchaseElement(element: item)
+            self.handlePurchaseResult(purchaseState)
         }
     }
 
@@ -36,14 +36,14 @@ extension PurchasableControllerProtocol {
         DispatchQueue.main.async {
             switch result {
             case .purchaseCompleted(let purchasable):
-                Logger.purchase.addLog("Purchase was completed.")
+                //Logger.purchase.addLog("Purchase was completed.")
                 self.onPurchaseProcessEnded(purchasable: purchasable, withError: false)
             case .purchaseNotCompleted(let withError):
-                Logger.purchase.addLog("Purchase was not completed.")
+                // Logger.purchase.addLog("Purchase was not completed.")
                 self.onPurchaseProcessEnded(purchasable: nil, withError: withError)
             }
             self.showLoadingPurchaseView(false)
         }
-    }
+    }*/
 }
 
