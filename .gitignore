@@ -1,8 +1,26 @@
-.DS_Store
-/.build
-/Packages
+# Swift package manager
+.build/
+Package.resolved
+
+# Xcode
+.idea/
 xcuserdata/
-DerivedData/
-.swiftpm/configuration/registries.json
-.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
-.netrc
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+*.xcworkspace/
+*.xcscheme
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build/
+
+# SwiftPM
+.swiftpm/
+
+# User-specific files
+*.swp
+*.DS_Store
+*.user
+*.userstate
