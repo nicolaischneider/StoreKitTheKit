@@ -175,7 +175,7 @@ extension StoreKitTheKit: SKPaymentTransactionObserver {
             return false
         }
         
-        guard !userHasAccessTo(element: purchasable) else {
+        guard !elementWasPurchased(element: purchasable) else {
             Logger.store.addLog("Product already purchased")
             return false
         }
