@@ -55,12 +55,12 @@ class StoreKitTheKit: NSObject, @unchecked Sendable {
             guard let self = self else { return }
             
             if path.status == .satisfied {
-                // Logger.app.addLog("Network connection restored.")
+                Logger.store.addLog("Network connection restored.")
                 Task {
                     await self.retryStoreConnection()
                 }
             } else {
-                // Logger.app.addLog("No network connection available.")
+                Logger.store.addLog("No network connection available.")
             }
         }
         networkMonitor.start(queue: monitorQueue)
