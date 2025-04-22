@@ -30,7 +30,7 @@ class StoreKitTheKit: NSObject, @unchecked Sendable {
     // Add store state
     @Published var storeState: StoreAvailabilityState = .checking {
         didSet {
-            // Logger.purchase.addLog("Store state has updated to \(storeState).")
+            Logger.store.addLog("Store state has updated to \(storeState).")
         }
     }
     

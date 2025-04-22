@@ -8,11 +8,11 @@ extension StoreKitTheKit {
     
     func purchaseElement(element: Purchasable) async -> PurchaseState {
         
-        // Logger.purchase.addLog("Purchasing item \(element.rawValue)...")
+        Logger.store.addLog("Purchasing item \(element.rawValue)...")
         
         // in case store not available try to restart that dum retard fuck
         if !storeIsAvailable {
-            // Logger.purchase.addLog("Store not available. Trying to reconnect.")
+            Logger.store.addLog("Store not available. Trying to reconnect.")
             await self.connectToStore()
         }
         
@@ -28,7 +28,7 @@ extension StoreKitTheKit {
             return self.purchasedProducts.first(where: { $0.id == element.rawValue }) != nil
         } else {
             // Fallback to keychain
-           // Logger.purchase.addLog("Retrieving \(element.rawValue) from local storage instead of StoreKit due to inavailability.")
+           Logger.store.addLog("Retrieving \(element.rawValue) from local storage instead of StoreKit due to inavailability.")
             let purchasedIds = LocalStoreManager.shared.getPurchasedProductIds()
             let available = purchasedIds.contains(element.rawValue)
             if available {

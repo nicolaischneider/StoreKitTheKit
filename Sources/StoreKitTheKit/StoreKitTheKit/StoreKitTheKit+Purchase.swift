@@ -27,7 +27,7 @@ extension StoreKitTheKit {
             self.products = try await Product.products(for: productIDs)
             storeState = !products.isEmpty ? .available : .unavailable
         } catch {
-            // Logger.purchase.addLog("Failed to load products: \(error)")
+            Logger.store.addLog("Failed to load products: \(error)")
             storeState = .unavailable
         }
     }
@@ -47,7 +47,7 @@ extension StoreKitTheKit {
                     
                 } catch {
                     // StoreKit transaction failed verification, don't deliver content to user.
-                    // Logger.purchase.addLog("Transaction \(result) failed verification")
+                    Logger.store.addLog("Transaction \(result) failed verification")
                     Task {
                         await MainActor.run {
                             self.storeState = .unavailable
@@ -88,7 +88,7 @@ extension StoreKitTheKit {
                     continue
                 }
             } catch {
-                // Logger.purchase.addLog("Something went wrong while updating customer product status: \(error)", level: .error)
+                Logger.store.addLog("Something went wrong while updating customer product status: \(error)", level: .error)
                 storeState = .unavailable
             }
         }
@@ -118,7 +118,7 @@ extension StoreKitTheKit {
         
         
         guard let product = self.products.first(where: { $0.id == element.rawValue }) else {
-            // Logger.purchase.addLog("Purchasbale item couldn't be found.")
+            Logger.store.addLog("Purchasbale item couldn't be found.")
             return completedPurchase(state: .purchaseNotCompleted(withError: true))
         }
         
@@ -133,33 +133,33 @@ extension StoreKitTheKit {
                 
                 // verify purchase
                 guard let transaction = try? checkVerified(verified) else {
-                    // Logger.purchase.addLog("Purchase unverified")
+                    Logger.store.addLog("Purchase unverified")
                     return completedPurchase(state: .purchaseNotCompleted(withError: false))
                 }
-                // Logger.purchase.addLog("Purchase verified: \(transaction)")
+                Logger.store.addLog("Purchase verified: \(transaction)")
                 
                 // Update customer status
                 await self.updateCustomerProductStatus()
                 await transaction.finish()
                 
                 // Return purchase as completed
-                // Logger.purchase.addLog("Purchase completed")
+                Logger.store.addLog("Purchase completed")
                 return completedPurchase(state: .purchaseCompleted(element))
                 
             case .userCancelled:
-                // Logger.purchase.addLog("User cancelled purchase")
+                Logger.store.addLog("User cancelled purchase")
                 return completedPurchase(state: .purchaseNotCompleted(withError: false))
                 
             case .pending:
-                // Logger.purchase.addLog("Purchase still pending")
+                Logger.store.addLog("Purchase still pending")
                 return completedPurchase(state: .purchaseNotCompleted(withError: false))
                 
             @unknown default:
-                // Logger.purchase.addLog("Unknown purchase state")
+                Logger.store.addLog("Unknown purchase state")
                 return completedPurchase(state: .purchaseNotCompleted(withError: true))
             }
         } catch {
-            // Logger.purchase.addLog("Failed to purchase product: \(error)")
+            Logger.store.addLog("Failed to purchase product: \(error)")
             return completedPurchase(state: .purchaseNotCompleted(withError: true))
         }
     }

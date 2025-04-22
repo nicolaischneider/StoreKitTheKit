@@ -20,7 +20,7 @@ extension PurchasableControllerProtocol {
     
     /*func purchase(item: Purchasable) {
         guard !StoreKitTheKit.shared.userHasAccessTo(element: item) else {
-            // Logger.purchase.addLog("User has already access to Purchasable.")
+            Logger.store.addLog("User has already access to Purchasable.")
             return
         }
         
@@ -39,7 +39,7 @@ extension PurchasableControllerProtocol {
                 //Logger.purchase.addLog("Purchase was completed.")
                 self.onPurchaseProcessEnded(purchasable: purchasable, withError: false)
             case .purchaseNotCompleted(let withError):
-                // Logger.purchase.addLog("Purchase was not completed.")
+                Logger.store.addLog("Purchase was not completed.")
                 self.onPurchaseProcessEnded(purchasable: nil, withError: withError)
             }
             self.showLoadingPurchaseView(false)

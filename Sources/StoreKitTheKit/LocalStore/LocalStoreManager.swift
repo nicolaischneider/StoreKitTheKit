@@ -23,7 +23,7 @@ class LocalStoreManager: @unchecked Sendable {
             let data = try JSONEncoder().encode(productIds)
             saveToKeychain(data)
         } catch {
-            // Logger.purchase.addLog("Failed to encode purchases for keychain: \(error)", level: .error)
+            Logger.store.addLog("Failed to encode purchases for keychain: \(error)", level: .error)
         }
     }
     
@@ -33,7 +33,7 @@ class LocalStoreManager: @unchecked Sendable {
         do {
             return try JSONDecoder().decode([String].self, from: data)
         } catch {
-            // Logger.purchase.addLog("Failed to decode purchases from keychain: \(error)", level: .error)
+            Logger.store.addLog("Failed to decode purchases from keychain: \(error)", level: .error)
             return []
         }
     }
@@ -50,7 +50,7 @@ class LocalStoreManager: @unchecked Sendable {
         let status = SecItemAdd(query as CFDictionary, nil)
         
         if status != errSecSuccess {
-            // Logger.purchase.addLog("Failed to save to keychain: \(status)", level: .error)
+            Logger.store.addLog("Failed to save to keychain: \(status)", level: .error)
         }
     }
     
