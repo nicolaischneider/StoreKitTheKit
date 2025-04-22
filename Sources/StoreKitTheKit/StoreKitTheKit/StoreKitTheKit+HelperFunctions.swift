@@ -8,7 +8,7 @@ extension StoreKitTheKit {
     
     func purchaseElement(element: Purchasable) async -> PurchaseState {
         
-        Logger.store.addLog("Purchasing item \(element.rawValue)...")
+        Logger.store.addLog("Purchasing item \(element.bundleId)...")
         
         // in case store not available try to restart that dum retard fuck
         if !storeIsAvailable {
@@ -25,12 +25,12 @@ extension StoreKitTheKit {
         
         // check whether regular purchase has been made
         if storeIsAvailable {
-            return self.purchasedProducts.first(where: { $0.id == element.rawValue }) != nil
+            return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
         } else {
             // Fallback to keychain
-           Logger.store.addLog("Retrieving \(element.rawValue) from local storage instead of StoreKit due to inavailability.")
+           Logger.store.addLog("Retrieving \(element.bundleId) from local storage instead of StoreKit due to inavailability.")
             let purchasedIds = LocalStoreManager.shared.getPurchasedProductIds()
-            let available = purchasedIds.contains(element.rawValue)
+            let available = purchasedIds.contains(element.bundleId)
             if available {
                //  Logger.purchase.addLog("product available: \(available)")
             }
@@ -56,7 +56,7 @@ extension StoreKitTheKit {
     // MARK: - Formatting
     
     func getPriceFormatted(for purchasable: Purchasable) -> String? {
-        guard let product = getPurchasableProduct(id: purchasable.rawValue) else {
+        guard let product = getPurchasableProduct(id: purchasable.bundleId) else {
             //Logger.purchase.addLog("Product coulnd't be found")
             return nil
         }
@@ -65,9 +65,9 @@ extension StoreKitTheKit {
     
     func getTotalPrice(for purchasables: [Purchasable]) -> String? {
         let totalPrice = purchasables.compactMap {
-            getPurchasableProduct(id: $0.rawValue)?.price
+            getPurchasableProduct(id: $0.bundleId)?.price
         }.reduce(0, +)
-        guard let item = getPurchasableProduct(id: purchasables[0].rawValue) else {
+        guard let item = getPurchasableProduct(id: purchasables[0].bundleId) else {
             return nil
         }
         return item.priceFormatStyle.format(totalPrice)
@@ -76,12 +76,12 @@ extension StoreKitTheKit {
     func comparePrice(for purchasables: [Purchasable], with comparisonItem: Purchasable) -> (differenceString: String?, percentageString: String?)? {
         // Calculate total price of all purchasables
         let totalPrice = purchasables.compactMap {
-            getPurchasableProduct(id: $0.rawValue)?.price
+            getPurchasableProduct(id: $0.bundleId)?.price
         }.reduce(Decimal(0), +)
         
         // Get the comparison item price
-        guard let comparisonProduct = getPurchasableProduct(id: comparisonItem.rawValue),
-              let formatStyle = getPurchasableProduct(id: purchasables.first?.rawValue ?? "")?.priceFormatStyle else {
+        guard let comparisonProduct = getPurchasableProduct(id: comparisonItem.bundleId),
+              let formatStyle = getPurchasableProduct(id: purchasables.first?.bundleId ?? "")?.priceFormatStyle else {
             return nil
         }
         

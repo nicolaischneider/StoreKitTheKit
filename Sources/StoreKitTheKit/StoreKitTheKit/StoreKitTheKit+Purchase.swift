@@ -22,7 +22,7 @@ extension StoreKitTheKit {
     // request products
     @MainActor
     func requestProducts() async {
-        let productIDs = Set(Purchasable.allCases.map(\.rawValue))
+        let productIDs = Set(PurchasableManager.shared.allCases.map(\.bundleId))
         do {
             self.products = try await Product.products(for: productIDs)
             storeState = !products.isEmpty ? .available : .unavailable
@@ -81,7 +81,7 @@ extension StoreKitTheKit {
                     if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
                         purchased.append(purchasedItem)
                     }
-                    if Purchasable.productIDExists(transaction.productID) {
+                    if PurchasableManager.shared.productIDExists(transaction.productID) {
                         purchasedItemsIds.append(transaction.productID)
                     }
                 default:
@@ -116,8 +116,7 @@ extension StoreKitTheKit {
 
     func purchase(_ element: Purchasable) async -> PurchaseState {
         
-        
-        guard let product = self.products.first(where: { $0.id == element.rawValue }) else {
+        guard let product = self.products.first(where: { $0.id == element.bundleId }) else {
             Logger.store.addLog("Purchasbale item couldn't be found.")
             return .purchaseNotCompleted(withError: true)
         }
@@ -171,7 +170,7 @@ extension StoreKitTheKit: SKPaymentTransactionObserver {
     }
     
     func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
-        guard let purchasable = Purchasable(rawValue: product.productIdentifier) else {
+        guard let purchasable = PurchasableManager.shared.produc(id: product.productIdentifier) else {
             Logger.store.addLog("Product couldn't be identified")
             return false
         }
