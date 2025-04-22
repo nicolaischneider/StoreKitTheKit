@@ -37,7 +37,7 @@ extension PurchasableControllerProtocol {
         DispatchQueue.main.async {
             switch result {
             case .purchaseCompleted(let purchasable):
-                //Logger.purchase.addLog("Purchase was completed.")
+                Logger.store.addLog("Purchase was completed.")
                 self.onPurchaseProcessEnded(purchasable: purchasable, withError: false)
             case .purchaseNotCompleted(let withError):
                 Logger.store.addLog("Purchase was not completed.")

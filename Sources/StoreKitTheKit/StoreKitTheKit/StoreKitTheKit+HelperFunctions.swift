@@ -32,7 +32,7 @@ extension StoreKitTheKit {
             let purchasedIds = LocalStoreManager.shared.getPurchasedProductIds()
             let available = purchasedIds.contains(element.bundleId)
             if available {
-               //  Logger.purchase.addLog("product available: \(available)")
+                Logger.store.addLog("product available: \(available)")
             }
             return available
         }
@@ -47,9 +47,9 @@ extension StoreKitTheKit {
     func restorePurchases () async {
         do {
             try await AppStore.sync()
-            //Logger.purchase.addLog("Purchases were synced")
+            Logger.store.addLog("Purchases were synced")
         } catch {
-            //Logger.purchase.addLog("Something went wrong while syncing purchases")
+            Logger.store.addLog("Something went wrong while syncing purchases")
         }
     }
     
@@ -57,7 +57,7 @@ extension StoreKitTheKit {
     
     func getPriceFormatted(for purchasable: Purchasable) -> String? {
         guard let product = getPurchasableProduct(id: purchasable.bundleId) else {
-            //Logger.purchase.addLog("Product coulnd't be found")
+            Logger.store.addLog("Product coulnd't be found")
             return nil
         }
         return product.displayPrice
