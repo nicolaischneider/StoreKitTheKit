@@ -8,12 +8,8 @@
 
 import Foundation
 
-enum StoreAvailabilityState {
+public enum StoreAvailabilityState {
     case available
     case unavailable
     case checking
-}
-
-protocol StoreAvailabilityDelegate: AnyObject {
-    func storeAvailabilityChanged(_ state: StoreAvailabilityState)
 }

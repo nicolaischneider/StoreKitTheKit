@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum PurchasableType {
+public enum PurchasableType {
     case nonConsumable
 }
 

@@ -11,30 +11,27 @@ import Foundation
 import os
 import Network
 
-class StoreKitTheKit: NSObject, @unchecked Sendable {
+public class StoreKitTheKit: NSObject, @unchecked Sendable {
     
-    static let shared = StoreKitTheKit()
+    public static let shared = StoreKitTheKit()
     
     // products
     var products = [Product]()
     var purchasedProducts = [Product]()
     var updateListenerTask: Task<Void, Error>? = nil
     
-    // delegates
-    weak var availabilityDelegate: StoreAvailabilityDelegate?
-    
     // Add network monitor
     private let networkMonitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "com.nicolaischneider.100questions.networkMonitor")
     
     // Add store state
-    @Published var storeState: StoreAvailabilityState = .checking {
+    @Published public var storeState: StoreAvailabilityState = .checking {
         didSet {
             Logger.store.addLog("Store state has updated to \(storeState).")
         }
     }
     
-    @Published var purchaseDataChanged = false
+    @Published public var purchaseDataChangedAfterGettingBackOnline = false
     
     var storeIsAvailable: Bool {
         return storeState == .available && !products.isEmpty
@@ -66,7 +63,7 @@ class StoreKitTheKit: NSObject, @unchecked Sendable {
         networkMonitor.start(queue: monitorQueue)
     }
     
-    func retryStoreConnection() async {
+    private func retryStoreConnection() async {
         await MainActor.run {
             self.storeState = .checking
         }
@@ -75,7 +72,7 @@ class StoreKitTheKit: NSObject, @unchecked Sendable {
     
     // MARK: - initialize Store and load products
     
-    func begin () async {
+    public func begin () async {
         await MainActor.run {
             self.storeState = .checking
         }

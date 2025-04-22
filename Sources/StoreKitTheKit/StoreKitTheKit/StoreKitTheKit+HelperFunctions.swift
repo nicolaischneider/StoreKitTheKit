@@ -6,7 +6,7 @@ extension StoreKitTheKit {
     
     // MARK: - Purchasing
     
-    func purchaseElement(element: Purchasable) async -> PurchaseState {
+    public func purchaseElement(element: Purchasable) async -> PurchaseState {
         
         Logger.store.addLog("Purchasing item \(element.bundleId)...")
         
@@ -21,7 +21,7 @@ extension StoreKitTheKit {
     
     // MARK: - Purchase List
     
-    func elementWasPurchased (element: Purchasable) -> Bool {
+    public func elementWasPurchased (element: Purchasable) -> Bool {
         
         // check whether regular purchase has been made
         if storeIsAvailable {
@@ -38,10 +38,6 @@ extension StoreKitTheKit {
         }
     }
     
-    func userHasAccessTo (element: Purchasable) -> Bool {
-        return elementWasPurchased(element: element)
-    }
-    
     // MARK: - Restore
     
     func restorePurchases () async {
@@ -49,13 +45,13 @@ extension StoreKitTheKit {
             try await AppStore.sync()
             Logger.store.addLog("Purchases were synced")
         } catch {
-            Logger.store.addLog("Something went wrong while syncing purchases")
+            Logger.store.addLog("Something went wrong while syncing purchases \(error)")
         }
     }
     
     // MARK: - Formatting
     
-    func getPriceFormatted(for purchasable: Purchasable) -> String? {
+    public func getPriceFormatted(for purchasable: Purchasable) -> String? {
         guard let product = getPurchasableProduct(id: purchasable.bundleId) else {
             Logger.store.addLog("Product coulnd't be found")
             return nil
@@ -63,7 +59,7 @@ extension StoreKitTheKit {
         return product.displayPrice
     }
     
-    func getTotalPrice(for purchasables: [Purchasable]) -> String? {
+    public func getTotalPrice(for purchasables: [Purchasable]) -> String? {
         let totalPrice = purchasables.compactMap {
             getPurchasableProduct(id: $0.bundleId)?.price
         }.reduce(0, +)
@@ -73,7 +69,7 @@ extension StoreKitTheKit {
         return item.priceFormatStyle.format(totalPrice)
     }
     
-    func comparePrice(for purchasables: [Purchasable], with comparisonItem: Purchasable) -> (differenceString: String?, percentageString: String?)? {
+    public func comparePrice(for purchasables: [Purchasable], with comparisonItem: Purchasable) -> (differenceString: String?, percentageString: String?)? {
         // Calculate total price of all purchasables
         let totalPrice = purchasables.compactMap {
             getPurchasableProduct(id: $0.bundleId)?.price

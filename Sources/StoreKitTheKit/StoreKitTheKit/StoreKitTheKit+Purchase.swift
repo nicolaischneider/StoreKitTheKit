@@ -62,7 +62,7 @@ extension StoreKitTheKit {
     @MainActor
     func updateCustomerProductStatus() async {
         
-        purchaseDataChanged = false
+        purchaseDataChangedAfterGettingBackOnline = false
         
         var purchased: [Product] = []
         var purchasedItemsIds: [String] = []
@@ -96,7 +96,7 @@ extension StoreKitTheKit {
         self.purchasedProducts = purchased
         if !purchasedProductsMatchLocallyStored(productIds: purchasedItemsIds) {
             LocalStoreManager.shared.storePurchasedProductIds(purchasedItemsIds)
-            purchaseDataChanged = true
+            purchaseDataChangedAfterGettingBackOnline = true
         }
         storeState = !products.isEmpty ? .available : .unavailable
     }
@@ -165,11 +165,11 @@ extension StoreKitTheKit {
 // App Store promotion
 extension StoreKitTheKit: SKPaymentTransactionObserver {
     
-    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+    public func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
         return
     }
     
-    func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
+    public func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
         guard let purchasable = PurchasableManager.shared.produc(id: product.productIdentifier) else {
             Logger.store.addLog("Product couldn't be identified")
             return false
