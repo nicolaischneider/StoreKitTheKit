@@ -32,6 +32,7 @@ extension PurchasableControllerProtocol {
         }
     }
 
+     
     func handlePurchaseResult(_ result: PurchaseState) {
         DispatchQueue.main.async {
             switch result {

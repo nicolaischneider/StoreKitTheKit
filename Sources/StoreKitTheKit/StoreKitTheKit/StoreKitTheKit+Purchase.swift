@@ -119,11 +119,9 @@ extension StoreKitTheKit {
         
         guard let product = self.products.first(where: { $0.id == element.rawValue }) else {
             Logger.store.addLog("Purchasbale item couldn't be found.")
-            return completedPurchase(state: .purchaseNotCompleted(withError: true))
+            return .purchaseNotCompleted(withError: true)
         }
-        
-        purchaseWasInitialized()
-        
+                
         do {
             let result = try await product.purchase()
             switch result {
@@ -134,7 +132,7 @@ extension StoreKitTheKit {
                 // verify purchase
                 guard let transaction = try? checkVerified(verified) else {
                     Logger.store.addLog("Purchase unverified")
-                    return completedPurchase(state: .purchaseNotCompleted(withError: false))
+                    return .purchaseNotCompleted(withError: false)
                 }
                 Logger.store.addLog("Purchase verified: \(transaction)")
                 
@@ -144,42 +142,24 @@ extension StoreKitTheKit {
                 
                 // Return purchase as completed
                 Logger.store.addLog("Purchase completed")
-                return completedPurchase(state: .purchaseCompleted(element))
+                return .purchaseCompleted(element)
                 
             case .userCancelled:
                 Logger.store.addLog("User cancelled purchase")
-                return completedPurchase(state: .purchaseNotCompleted(withError: false))
+                return .purchaseNotCompleted(withError: false)
                 
             case .pending:
                 Logger.store.addLog("Purchase still pending")
-                return completedPurchase(state: .purchaseNotCompleted(withError: false))
+                return .purchaseNotCompleted(withError: false)
                 
             @unknown default:
                 Logger.store.addLog("Unknown purchase state")
-                return completedPurchase(state: .purchaseNotCompleted(withError: true))
+                return .purchaseNotCompleted(withError: true)
             }
         } catch {
             Logger.store.addLog("Failed to purchase product: \(error)")
-            return completedPurchase(state: .purchaseNotCompleted(withError: true))
+            return .purchaseNotCompleted(withError: true)
         }
-    }
-    
-    private func purchaseWasInitialized () {
-        DispatchQueue.main.async {
-            // self.delegateLaunchScreen?.purchasing()
-        }
-    }
-        
-    private func completedPurchase (state: PurchaseState) -> PurchaseState {
-        DispatchQueue.main.async {
-            /*switch state {
-            case .purchaseCompleted(let purchasable):
-                self.delegateLaunchScreen?.itemWasPurchased(purchasable)
-            case .purchaseNotCompleted(_):
-                self.delegateLaunchScreen?.itemWasPurchased(nil)
-            }*/
-        }
-        return state
     }
 }
 
@@ -192,12 +172,12 @@ extension StoreKitTheKit: SKPaymentTransactionObserver {
     
     func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
         guard let purchasable = Purchasable(rawValue: product.productIdentifier) else {
-            //Logger.purchase.addLog("Product couldn't be identified")
+            Logger.store.addLog("Product couldn't be identified")
             return false
         }
         
         guard !userHasAccessTo(element: purchasable) else {
-            //Logger.purchase.addLog("Product already purchased")
+            Logger.store.addLog("Product already purchased")
             return false
         }
         
