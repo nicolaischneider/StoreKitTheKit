@@ -10,5 +10,20 @@ import Foundation
 
 public enum PurchaseState: Sendable {
     case purchaseCompleted(Purchasable)
-    case purchaseNotCompleted(withError: Bool)
+    case purchaseFailure(PurchaseError)
+    
+    
+    public enum PurchaseError: Error, Sendable {
+        // Product errors
+        case productNotFound
+        case unverifiedPurchase
+        
+        // User interaction
+        case userCancelled
+        case pendingPurchase
+        
+        // System errors
+        case unknownPurchaseState
+        case purchaseError(Error)
+    }
 }

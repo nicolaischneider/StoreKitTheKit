@@ -117,8 +117,8 @@ extension StoreKitTheKit {
     func purchase(_ element: Purchasable) async -> PurchaseState {
         
         guard let product = self.products.first(where: { $0.id == element.bundleId }) else {
-            Logger.store.addLog("Purchasbale item couldn't be found.")
-            return .purchaseNotCompleted(withError: true)
+            Logger.store.addLog("Purchasable item couldn't be found.")
+            return .purchaseFailure(.productNotFound)
         }
                 
         do {
@@ -131,7 +131,7 @@ extension StoreKitTheKit {
                 // verify purchase
                 guard let transaction = try? checkVerified(verified) else {
                     Logger.store.addLog("Purchase unverified")
-                    return .purchaseNotCompleted(withError: false)
+                    return .purchaseFailure(.unverifiedPurchase)
                 }
                 Logger.store.addLog("Purchase verified: \(transaction)")
                 
@@ -145,19 +145,19 @@ extension StoreKitTheKit {
                 
             case .userCancelled:
                 Logger.store.addLog("User cancelled purchase")
-                return .purchaseNotCompleted(withError: false)
+                return .purchaseFailure(.userCancelled)
                 
             case .pending:
                 Logger.store.addLog("Purchase still pending")
-                return .purchaseNotCompleted(withError: false)
+                return .purchaseFailure(.pendingPurchase)
                 
             @unknown default:
                 Logger.store.addLog("Unknown purchase state")
-                return .purchaseNotCompleted(withError: true)
+                return .purchaseFailure(.unknownPurchaseState)
             }
         } catch {
             Logger.store.addLog("Failed to purchase product: \(error)")
-            return .purchaseNotCompleted(withError: true)
+            return .purchaseFailure(.purchaseError(error))
         }
     }
 }
