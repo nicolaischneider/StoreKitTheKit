@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="storekitthekit.png" width="1000" alt="StoreKitTheKit"/>
+</p>
+
 ![Swift](https://img.shields.io/badge/Swift-5.5-orange) 
 ![iOS v15+](https://img.shields.io/badge/iOS-v15+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
