@@ -16,7 +16,6 @@ extension StoreKitTheKit {
     }
 }
 
-// storekit 2
 extension StoreKitTheKit {
     
     // request products
