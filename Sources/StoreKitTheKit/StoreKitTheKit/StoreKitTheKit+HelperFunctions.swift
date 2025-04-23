@@ -159,4 +159,13 @@ extension StoreKitTheKit {
         
         return (differenceString, percentageString)
     }
+    
+    private func getPurchasableProduct (id: String) -> Product? {
+        for product in self.products {
+            if product.id == id {
+                return product
+            }
+        }
+        return nil
+    }
 }
