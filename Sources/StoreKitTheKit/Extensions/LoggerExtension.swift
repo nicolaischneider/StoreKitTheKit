@@ -20,8 +20,11 @@ extension Logger {
         level: OSLogType = .default,
         shareWithCtashlytics: Bool = true
     ) {
-        let text = "\(message): \(String(describing: input))"
-        addlog(text, level: level)
+        if let input = input {
+            addlog("\(message): \(String(describing: input))", level: level)
+        } else {
+            addlog(message, level: level)
+        }
     }
     
     func addLog (

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum PurchaseState {
+public enum PurchaseState: Sendable {
     case purchaseCompleted(Purchasable)
     case purchaseNotCompleted(withError: Bool)
 }

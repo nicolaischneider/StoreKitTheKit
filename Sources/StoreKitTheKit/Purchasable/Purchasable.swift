@@ -8,13 +8,19 @@
 
 import Foundation
 
-public enum PurchasableType {
+public enum PurchasableType: Sendable {
     case nonConsumable
 }
 
-public struct Purchasable {
-    let bundleId: String
-    let type: PurchasableType
+public struct Purchasable: Sendable {
+    
+    public init(bundleId: String, type: PurchasableType) {
+        self.bundleId = bundleId
+        self.type = type
+    }
+    
+    public let bundleId: String
+    public let type: PurchasableType
 }
 
 public class PurchasableManager: @unchecked Sendable {
