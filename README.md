@@ -1,3 +1,7 @@
+![Swift](https://img.shields.io/badge/Swift-5.5-orange) 
+![iOS v15+](https://img.shields.io/badge/iOS-v15+-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+
 # StoreKitTheKit
 
 A lightweight wrapper for StoreKit2 that makes implementing in-app purchases simple.
