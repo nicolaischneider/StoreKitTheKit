@@ -28,33 +28,36 @@ PurchasableManager.shared.register(purchasableItems: [
 
 ### 2. Initialize the store
 ```swift
-await PurchasableManager.shared.begin()
+await StoreKitTheKit.shared.begin()
 ```
 
 ### 3. Make purchases
 ```swift
-let result = await PurchasableManager.shared.purchaseElement(element: premiumItem)
+let result = await StoreKitTheKit.shared.purchaseElement(element: premiumItem)
 ```
 
 ### 4. Check purchase status
 ```swift
-let isPremium = PurchasableManager.shared.elementWasPurchased(element: premiumItem)
+let isPremium = StoreKitTheKit.shared.elementWasPurchased(element: premiumItem)
 ```
 
 ### 5. Restore purchases
 ```swift
-await PurchasableManager.shared.restorePurchases()
+await StoreKitTheKit.shared.restorePurchases()
 ```
 
 ## Price Formatting
 
 ```swift
 // Get price for an item
-let price = PurchasableManager.shared.getPriceFormatted(for: item)
+let price = StoreKitTheKit.shared.getPriceFormatted(for: item)
+
+// get total price of multiple items
+let totalPrice = StoreKitTheKit.shared.getPriceFormatted(for: [item1, item2])
 
 // Compare prices
-let (savings, percentage) = PurchasableManager.shared.comparePrice(
-    for: [item1, item2], with: bundleItem
+let (savings, percentage) = StoreKitTheKit.shared.comparePrice(
+    for: [item1, item2], with: item3
 )
 ```
 
