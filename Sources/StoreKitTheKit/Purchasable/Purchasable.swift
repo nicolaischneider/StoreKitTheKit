@@ -1,11 +1,3 @@
-//
-//  PurchasableGameModes.swift
-//  100Questions
-//
-//  Created by Nicolai Schneider on 09.10.21.
-//  Copyright © 2021 Schneider & co. All rights reserved.
-//
-
 import Foundation
 
 public enum PurchasableType: Sendable {

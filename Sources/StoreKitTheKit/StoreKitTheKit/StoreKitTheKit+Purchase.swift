@@ -2,9 +2,39 @@ import StoreKit
 import Foundation
 import os
 
-// purchase
-extension StoreKitTheKit {
+// MARK: Public
 
+extension StoreKitTheKit {
+    
+    // MARK: - Purchasing
+    
+    /**
+     Purchases a specified item from the App Store.
+     
+     This function will attempt to purchase the provided item and handle the purchase flow.
+     If the store connection is unavailable, it will try to reconnect before proceeding with the purchase.
+     
+     - Parameter element: The Purchasable item to be purchased
+     - Returns: A PurchaseState enum indicating the result of the purchase attempt
+     */
+    public func purchaseElement(element: Purchasable) async -> PurchaseState {
+        
+        Logger.store.addLog("Purchasing item \(element.bundleId)...")
+        
+        // in case store not available try to restart that dum retard fuck
+        if !storeIsAvailable {
+            Logger.store.addLog("Store not available. Trying to reconnect.")
+            await self.connectToStore()
+        }
+        
+        return await purchase(element)
+    }
+}
+
+// MARK: Private
+
+extension StoreKitTheKit {
+    
     func purchase(_ element: Purchasable) async -> PurchaseState {
         
         guard let product = self.products.first(where: { $0.id == element.bundleId }) else {

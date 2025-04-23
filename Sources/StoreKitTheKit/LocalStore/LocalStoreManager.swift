@@ -1,11 +1,3 @@
-//
-//  LocalStoreManager.swift
-//  100Questions
-//
-//  Created by knc on 09.02.25.
-//  Copyright © 2025 Schneider & co. All rights reserved.
-//
-
 import Foundation
 import Security
 import os

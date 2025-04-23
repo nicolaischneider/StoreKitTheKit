@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  StoreKitTheKit
-//
-//  Created by knc on 22.04.25.
-//
-
 import Foundation
 import os
 
