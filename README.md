@@ -3,7 +3,9 @@
 </p>
 
 ![Swift](https://img.shields.io/badge/Swift-5.5-orange) 
-![iOS v15+](https://img.shields.io/badge/iOS-v15+-blue)
+![iOS](https://img.shields.io/badge/iOS-v15%2B-blue)
+![macOS](https://img.shields.io/badge/macOS-v12%2B-lightgrey)
+![tvOS](https://img.shields.io/badge/tvOS-v15%2B-purple)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 # StoreKitTheKit
