@@ -20,13 +20,24 @@ A lightweight wrapper for StoreKit2 that makes implementing in-app purchases sim
 4. **Focused Simplicity** - Currently only available for non-consumable IAPs (with consumables and subscriptions coming soon)
 5. **Security** - Added Receipt Validation
 
+
 ## Installation
+
+### Swift Package Manager
 
 ```swift
 dependencies: [
     .package(url: "https://github.com/nicolaischneider/storekitthekit.git", from: "1.0.0")
 ]
 ```
+
+### CocoaPods
+
+Add the ollowing line to your `Podfile`:
+```ruby
+pod 'StoreKitTheKit'
+```
+Then run `pod install` and open your `.xcworkspace`.
 
 ## Setup
 
