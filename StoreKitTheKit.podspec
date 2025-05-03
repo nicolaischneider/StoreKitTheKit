@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
                             DESC
     s.homepage         = 'https://github.com/nicolaischneider/StoreKitTheKit'
     s.license          = { :type => 'MIT', :file => 'LICENSE' }
-    s.author           = { 'Nicolai Schneider' => '' }
+    s.author           = { 'Nicolai Schneider' => 'nicolaischneiderdev@gmail.com' }
     s.source           = { :git => 'https://github.com/nicolaischneider/StoreKitTheKit.git', :tag => s.version.to_s }
 
     s.ios.deployment_target = '15.0'
