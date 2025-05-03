@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name             = 'StoreKitTheKit'
-    s.version          = '1.1.0'
+    s.version          = '1.2.0'
     s.summary          = 'A Swift package for simplified StoreKit integration'
     s.description      = <<-DESC
                             StoreKitTheKit is a Swift library that provides a simplified interface for working with StoreKit.
