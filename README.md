@@ -85,6 +85,6 @@ let (savings, percentage) = StoreKitTheKit.shared.comparePrice(
 )
 ```
 
-## Requirements
-- iOS 15.0+
-- Swift 5.5+
+## Example
+
+Check out the [example app](Examples/StoreKitTheKitExample) to see a basic implementation.
