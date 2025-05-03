@@ -1,10 +1,9 @@
 Pod::Spec.new do |s|
     s.name             = 'StoreKitTheKit'
-    s.version          = '1.2.0'
+    s.version          = '1.2.1'
     s.summary          = 'A Swift package for simplified StoreKit integration'
     s.description      = <<-DESC
-                            StoreKitTheKit is a Swift library that provides a simplified interface for working with StoreKit.
-                            It makes implementing in-app purchases and subscriptions more straightforward for iOS, macOS, and tvOS applications.
+                            A lightweight StoreKit 2 wrapper for Swift, simplifying in-app purchases with fast integration, seamless offline support, and intelligent connection management. Ideal for non-consumable IAPs.
                             DESC
     s.homepage         = 'https://github.com/nicolaischneider/StoreKitTheKit'
     s.license          = { :type => 'MIT', :file => 'LICENSE' }
