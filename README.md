@@ -70,6 +70,54 @@ let isPremium = StoreKitTheKit.shared.elementWasPurchased(element: premiumItem)
 await StoreKitTheKit.shared.restorePurchases()
 ```
 
+## Handle Store Availablility (eg due to missing internet connection)
+
+In SwiftUI
+```swift
+// Handle the updated store state
+.onReceive(StoreKitTheKit.shared.$storeState) { state in
+    switch state {
+    case .available:
+        print("store is accessible")
+    case .unavailable:
+        print("store is unaccessible")
+    case .checking:
+        print("connecting to store")
+    }
+}
+
+// Handling of updated locally stored purchases (eg because of reconnection to internet
+.onReceive(StoreKitTheKit.shared.$purchaseDataChangedAfterGettingBackOnline) { changed in
+    if changed {
+        print("locally stored purchases have been updated.")
+    }
+}
+```
+
+In UIKit:
+```swift
+// Subscribe at view start to get udpates
+func subscribe() {
+    // check state for store
+    StoreManager.shared.$storeState
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] state in
+            // Handle the updated store state
+        }
+        .store(in: &cancellables)
+    
+    StoreManager.shared.$purchaseDataChanged
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] changed in
+            guard let self = self else { return }
+            if changed {
+                // Handling of updated locally stored purchases (eg because of reconnection to internet
+            }
+        }
+        .store(in: &cancellables)
+}
+```
+
 ## Price Formatting
 
 ```swift
