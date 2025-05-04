@@ -7,11 +7,15 @@
 
 import SwiftUI
 import StoreKitTheKit
+import Combine
 
 struct ContentView: View {
+    
     @State private var isLoading = true
     @State private var feedbackMessage = ""
     @State private var showFeedback = false
+    
+    private var cancellables = Set<AnyCancellable>()
     
     var body: some View {
         ZStack {
@@ -63,6 +67,16 @@ struct ContentView: View {
             Task {
                 // Initialize StoreKitTheKit
                 await initializeStore()
+            }
+        }
+        .onReceive(StoreKitTheKit.shared.$storeState) { state in
+            feedbackMessage = "Store state changed: \(state)"
+            showFeedback = true
+        }
+        .onReceive(StoreKitTheKit.shared.$purchaseDataChangedAfterGettingBackOnline) { changed in
+            if changed {
+                feedbackMessage = "Purchase data has been updated"
+                showFeedback = true
             }
         }
     }
