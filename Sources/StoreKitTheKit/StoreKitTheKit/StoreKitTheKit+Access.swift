@@ -13,10 +13,19 @@ extension StoreKitTheKit {
      StoreKit's purchase records. If the store is unavailable, it falls back to local storage
      to check the purchase status.
      
+     - Note: For consumable items, this always returns `false` since consumables are meant to be 
+             purchased and consumed by the app. Apps should handle their own consumption logic.
+     
      - Parameter element: The Purchasable item to check for purchase status
-     - Returns: Boolean value indicating whether the item has been purchased
+     - Returns: Boolean value indicating whether the item has been purchased (always false for consumables)
      */
     public func elementWasPurchased(element: Purchasable) -> Bool {
+        // Consumables are not "owned" - they're purchased and consumed
+        // Apps should handle their own consumption logic
+        if element.type == .consumable {
+            return false
+        }
+        
         // check whether purchase has been made / subscription is active
         if storeIsAvailable {
             return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
@@ -28,6 +37,8 @@ extension StoreKitTheKit {
                 return isNonConsumablePurchasedLocally(element: element)
             case .autoRenewableSubscription:
                 return isSubscriptionActiveLocally(element: element)
+            case .consumable:
+                return false // Consumables are never "owned"
             }
         }
     }

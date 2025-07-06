@@ -95,7 +95,13 @@ extension StoreKitTheKit {
                         purchased.append(purchasedItem)
                     }
                     purchasedItemsIds.append(transaction.productID)
-                    
+                case .consumable:
+                    // Consumables are processed but not tracked in purchased products
+                    // Apps handle their own consumption logic after successful purchase
+                    if PurchasableManager.shared.productIDExists(transaction.productID) {
+                        Logger.store.addLog("Consumable purchase processed: \(transaction.productID)")
+                        // Transaction will be finished in the purchase flow
+                    }
                 default:
                     continue
                 }

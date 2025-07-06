@@ -91,6 +91,34 @@ struct ContentView: View {
                         
                         Divider()
                         
+                        // Consumable Section
+                        VStack(spacing: 15) {
+                            Text("Consumable Testing")
+                                .font(.headline)
+                                .foregroundColor(.purple)
+                            
+                            HStack(spacing: 10) {
+                                // Purchase coins
+                                Button("Buy 100 Coins ($1.99)") {
+                                    Task { await purchaseConsumable(StoreItems.hundredCoins) }
+                                }
+                                .buttonStyle(.bordered)
+                                
+                                // Purchase energy
+                                Button("Buy 10 Energy ($0.99)") {
+                                    Task { await purchaseConsumable(StoreItems.tenEnergy) }
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                            
+                            Button("Check Consumable Status") {
+                                checkConsumableStatus()
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        
+                        Divider()
+                        
                         // Status Section
                         VStack(spacing: 10) {
                             Text("Current Status")
@@ -192,6 +220,41 @@ struct ContentView: View {
         feedbackMessage = isPurchased ?
             "✅ Super Package is purchased" :
             "❌ Super Package is not purchased yet"
+        showFeedback = true
+    }
+    
+    // MARK: - Consumable Functions
+    
+    private func purchaseConsumable(_ consumable: Purchasable) async {
+        let consumableName = consumable == StoreItems.hundredCoins ? "100 Coins" : "10 Energy"
+        
+        await MainActor.run {
+            feedbackMessage = "Processing \(consumableName) purchase..."
+            showFeedback = true
+        }
+        
+        let result = await StoreKitTheKit.shared.purchaseElement(element: consumable)
+        
+        await MainActor.run {
+            switch result {
+            case .purchaseCompleted(_):
+                feedbackMessage = "✅ Successfully purchased \(consumableName)!\nYour app should now handle the consumption logic."
+            case .purchaseFailure(let withError):
+                feedbackMessage = "❌ Consumable purchase failed: \(withError)"
+            }
+        }
+    }
+    
+    private func checkConsumableStatus() {
+        let coinsOwned = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.hundredCoins)
+        let energyOwned = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.tenEnergy)
+        
+        var status = "Consumable Status:\n\n"
+        status += "100 Coins: \(coinsOwned ? "✅ Owned" : "❌ Not owned")\n"
+        status += "10 Energy: \(energyOwned ? "✅ Owned" : "❌ Not owned")\n\n"
+        status += "Note: Consumables always show 'Not owned' since they're meant to be consumed by your app after purchase."
+        
+        feedbackMessage = status
         showFeedback = true
     }
     
@@ -299,7 +362,15 @@ struct ContentView: View {
         let yearlyValid = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.yearlySubscription)
         
         status += "Weekly Subscription: \(weeklyValid ? "✅ Active" : "❌ Inactive")\n"
-        status += "Yearly Subscription: \(yearlyValid ? "✅ Active" : "❌ Inactive")"
+        status += "Yearly Subscription: \(yearlyValid ? "✅ Active" : "❌ Inactive")\n\n"
+        
+        // Consumables (always show as not owned)
+        let coinsOwned = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.hundredCoins)
+        let energyOwned = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.tenEnergy)
+        
+        status += "100 Coins: \(coinsOwned ? "✅ Owned" : "❌ Not owned")\n"
+        status += "10 Energy: \(energyOwned ? "✅ Owned" : "❌ Not owned")\n"
+        status += "(Consumables always show 'Not owned')"
         
         feedbackMessage = status
         showFeedback = true

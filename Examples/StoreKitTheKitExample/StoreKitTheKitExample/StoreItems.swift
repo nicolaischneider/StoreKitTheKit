@@ -17,6 +17,10 @@ struct StoreItems {
     static let weeklySubscription = Purchasable(bundleId: "com.nicolaischneider.superdupersub.weekly", type: .autoRenewableSubscription)
     static let yearlySubscription = Purchasable(bundleId: "com.nicolaischneider.superdupersub.yearly", type: .autoRenewableSubscription)
     
+    // Consumables
+    static let hundredCoins = Purchasable(bundleId: "com.nicolaischneider.coins.hundred", type: .consumable)
+    static let tenEnergy = Purchasable(bundleId: "com.nicolaischneider.energy.ten", type: .consumable)
+    
     // All items for easy registration
-    static let allItems = [superPackage, weeklySubscription, yearlySubscription]
+    static let allItems = [superPackage, weeklySubscription, yearlySubscription, hundredCoins, tenEnergy]
 }

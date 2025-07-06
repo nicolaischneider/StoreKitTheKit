@@ -28,6 +28,36 @@
       "productID" : "com.nicolaischneider.superpackage",
       "referenceName" : "Super Package",
       "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "COINS100",
+      "localizations" : [
+        {
+          "description" : "Get 100 gold coins for your adventures",
+          "displayName" : "100 Gold Coins",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nicolaischneider.coins.hundred",
+      "referenceName" : "100 Gold Coins",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "ENERGY10",
+      "localizations" : [
+        {
+          "description" : "Refill your energy to keep playing",
+          "displayName" : "10 Energy",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nicolaischneider.energy.ten",
+      "referenceName" : "10 Energy",
+      "type" : "Consumable"
     }
   ],
   "settings" : {
