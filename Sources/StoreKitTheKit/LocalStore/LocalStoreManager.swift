@@ -9,6 +9,7 @@ class LocalStoreManager: @unchecked Sendable {
     static let shared = LocalStoreManager()
     
     private let purchasesKey = "com.nicolaischneider.100questions.purchases"
+    private let subscriptionsKey = "com.nicolaischneider.100questions.subscriptions"
     
     func storePurchasedProductIds(_ productIds: [String]) {
         do {
@@ -31,9 +32,65 @@ class LocalStoreManager: @unchecked Sendable {
     }
     
     private func saveToKeychain(_ data: Data) {
+        saveToKeychain(data, key: purchasesKey)
+    }
+    
+    private func loadFromKeychain() -> Data? {
+        return loadFromKeychain(key: purchasesKey)
+    }
+    
+    // MARK: - Subscription Storage
+    
+    func storeSubscriptionData(_ subscriptionData: StoredSubscriptionData) {
+        do {
+            let data = try JSONEncoder().encode(subscriptionData)
+            saveToKeychain(data, key: subscriptionsKey)
+        } catch {
+            Logger.store.addLog("Failed to encode subscription data for keychain: \(error)", level: .error)
+        }
+    }
+    
+    func getSubscriptionData() -> StoredSubscriptionData {
+        guard let data = loadFromKeychain(key: subscriptionsKey) else { 
+            return StoredSubscriptionData()
+        }
+        
+        do {
+            return try JSONDecoder().decode(StoredSubscriptionData.self, from: data)
+        } catch {
+            Logger.store.addLog("Failed to decode subscription data from keychain: \(error)", level: .error)
+            return StoredSubscriptionData()
+        }
+    }
+    
+    func getSubscriptionInfo(for productID: String) -> SubscriptionInfo? {
+        let subscriptionData = getSubscriptionData()
+        return subscriptionData.subscriptions[productID]
+    }
+    
+    func isSubscriptionActive(for productID: String) -> Bool {
+        guard let subscriptionInfo = getSubscriptionInfo(for: productID) else { return false }
+        
+        let now = Date()
+        
+        // Check if subscription is within its active period
+        if subscriptionInfo.expirationDate > now {
+            return true
+        }
+        
+        // Check if subscription is in grace period
+        if let gracePeriodEnd = subscriptionInfo.gracePeriodExpirationDate,
+           gracePeriodEnd > now {
+            return true
+        }
+        
+        return false
+    }
+    
+    private func saveToKeychain(_ data: Data, key: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: purchasesKey,
+            kSecAttrAccount as String: key,
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
@@ -46,10 +103,10 @@ class LocalStoreManager: @unchecked Sendable {
         }
     }
     
-    private func loadFromKeychain() -> Data? {
+    private func loadFromKeychain(key: String) -> Data? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: purchasesKey,
+            kSecAttrAccount as String: key,
             kSecReturnData as String: kCFBooleanTrue!,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]

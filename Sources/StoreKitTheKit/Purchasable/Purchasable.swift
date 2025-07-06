@@ -2,6 +2,7 @@ import Foundation
 
 public enum PurchasableType: Sendable {
     case nonConsumable
+    case autoRenewableSubscription
 }
 
 public struct Purchasable: Sendable {

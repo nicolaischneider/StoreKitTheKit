@@ -17,19 +17,39 @@ extension StoreKitTheKit {
      - Returns: Boolean value indicating whether the item has been purchased
      */
     public func elementWasPurchased(element: Purchasable) -> Bool {
-        
-        // check whether regular purchase has been made
+        // check whether purchase has been made / subscription is active
         if storeIsAvailable {
             return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
+            
+        // Fallback to keychain
         } else {
-            // Fallback to keychain
-            Logger.store.addLog("Retrieving \(element.bundleId) from local storage instead of StoreKit due to inavailability.")
-            let purchasedIds = LocalStoreManager.shared.getPurchasedProductIds()
-            let available = purchasedIds.contains(element.bundleId)
-            if available {
-                Logger.store.addLog("product available: \(available)")
+            switch element.type {
+            case .nonConsumable:
+                return isNonConsumablePurchasedLocally(element: element)
+            case .autoRenewableSubscription:
+                return isSubscriptionActiveLocally(element: element)
             }
-            return available
+        }
+    }
+    
+    private func isNonConsumablePurchasedLocally(element: Purchasable) -> Bool {
+        Logger.store.addLog("Retrieving \(element.bundleId) from local storage instead of StoreKit due to inavailability.")
+        let purchasedIds = LocalStoreManager.shared.getPurchasedProductIds()
+        let available = purchasedIds.contains(element.bundleId)
+        if available {
+            Logger.store.addLog("product available: \(available)")
+        }
+        return available
+    }
+    
+    private func isSubscriptionActiveLocally(element: Purchasable) -> Bool {
+        if storeIsAvailable {
+            // Check if subscription is in current purchased products (active subscriptions)
+            return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
+        } else {
+            // Fallback to local storage for subscription validation
+            Logger.store.addLog("Checking subscription \(element.bundleId) from local storage due to store unavailability.")
+            return LocalStoreManager.shared.isSubscriptionActive(for: element.bundleId)
         }
     }
     

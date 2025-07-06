@@ -53,6 +53,7 @@ extension StoreKitTheKit {
         
         var purchased: [Product] = []
         var purchasedItemsIds: [String] = []
+        var activeSubscriptions: [String: SubscriptionInfo] = [:]
 
         // Iterate through all of the user's purchased products.
         for await result in Transaction.currentEntitlements {
@@ -71,6 +72,30 @@ extension StoreKitTheKit {
                     if PurchasableManager.shared.productIDExists(transaction.productID) {
                         purchasedItemsIds.append(transaction.productID)
                     }
+                case .autoRenewable:
+                    // Check if the product ID exists in PurchasableManager
+                    guard PurchasableManager.shared.productIDExists(transaction.productID) else {
+                        Logger.store.addLog("Product \(transaction.productID) not found in PurchasableManager")
+                        continue
+                    }
+                    
+                    // Create subscription info from transaction
+                    let subscriptionInfo = SubscriptionInfo(
+                        productID: transaction.productID,
+                        expirationDate: transaction.expirationDate ?? Date(),
+                        isActive: true,
+                        renewalDate: nil,
+                        gracePeriodExpirationDate: nil,
+                        subscriptionGroupID: transaction.subscriptionGroupID ?? ""
+                    )
+                    activeSubscriptions[transaction.productID] = subscriptionInfo
+                    
+                    // Add to purchased items if subscription is active
+                    if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
+                        purchased.append(purchasedItem)
+                    }
+                    purchasedItemsIds.append(transaction.productID)
+                    
                 default:
                     continue
                 }
@@ -81,10 +106,22 @@ extension StoreKitTheKit {
         }
         
         self.purchasedProducts = purchased
+        
         if !purchasedProductsMatchLocallyStored(productIds: purchasedItemsIds) {
             LocalStoreManager.shared.storePurchasedProductIds(purchasedItemsIds)
             purchaseDataChangedAfterGettingBackOnline = true
         }
+        
+        // Store subscription data and notify of changes
+        if !activeSubscriptions.isEmpty {
+            let subscriptionData = StoredSubscriptionData(
+                subscriptions: activeSubscriptions,
+                lastUpdated: Date()
+            )
+            LocalStoreManager.shared.storeSubscriptionData(subscriptionData)
+            purchaseDataChangedAfterGettingBackOnline = true
+        }
+        
         storeState = !products.isEmpty ? .available : .unavailable
     }
     

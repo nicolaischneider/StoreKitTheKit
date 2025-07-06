@@ -83,7 +83,71 @@
     ]
   },
   "subscriptionGroups" : [
+    {
+      "id" : "DC075F47",
+      "localizations" : [
 
+      ],
+      "name" : "Super Duper Sub",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "0.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "05B821A0",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "",
+              "displayName" : "",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.nicolaischneider.superdupersub.weekly",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Super Duper Sub Weekly",
+          "subscriptionGroupID" : "DC075F47",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "10.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "9571A92B",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "",
+              "displayName" : "",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.nicolaischneider.superdupersub.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Super Super Sub Yearly",
+          "subscriptionGroupID" : "DC075F47",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
   ],
   "version" : {
     "major" : 4,
