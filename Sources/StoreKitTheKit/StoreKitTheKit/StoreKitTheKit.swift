@@ -59,7 +59,7 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
         await MainActor.run {
             self.storeState = .checking
         }
-        await connectToStore()
+        await syncWithStore()
     }
     
     // MARK: - initialize Store and load products
@@ -69,10 +69,10 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
             self.storeState = .checking
         }
         SKPaymentQueue.default().add(self)
-        await connectToStore()
+        await syncWithStore()
     }
     
-    func connectToStore () async {
+    public func syncWithStore () async {
         updateListenerTask?.cancel()
         updateListenerTask = listenForTransactions()
         await requestProducts()

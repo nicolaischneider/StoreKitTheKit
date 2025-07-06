@@ -24,7 +24,7 @@ extension StoreKitTheKit {
         // in case store not available try to restart that dum retard fuck
         if !storeIsAvailable {
             Logger.store.addLog("Store not available. Trying to reconnect.")
-            await self.connectToStore()
+            await self.syncWithStore()
         }
         
         return await purchase(element)
