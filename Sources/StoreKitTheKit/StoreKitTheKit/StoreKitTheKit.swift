@@ -73,6 +73,7 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     }
     
     public func syncWithStore () async {
+        Logger.store.addLog("Syncing with StoreKit...")
         updateListenerTask?.cancel()
         updateListenerTask = listenForTransactions()
         await requestProducts()

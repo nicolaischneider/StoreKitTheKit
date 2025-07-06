@@ -19,7 +19,7 @@ struct ContentView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 25) {
-                Text("StoreKitTheKit Subscription Tester")
+                Text("StoreKitTheKit Tester")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .padding(.bottom, 20)
@@ -149,6 +149,11 @@ struct ContentView: View {
                 getSubscriptionInfo()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            Task {
+                await StoreKitTheKit.shared.syncWithStore()
+            }
+        }
     }
     
     // MARK: - Store Initialization
@@ -204,7 +209,7 @@ struct ContentView: View {
         
         await MainActor.run {
             switch result {
-            case .purchaseCompleted(let purchasable):
+            case .purchaseCompleted:
                 feedbackMessage = "✅ Successfully subscribed to: \(subscriptionName)"
                 getSubscriptionInfo()
             case .purchaseFailure(let withError):
