@@ -10,11 +10,7 @@ import StoreKitTheKit
 
 struct ContentView: View {
     
-    @State private var isLoading = true
-    @State private var feedbackMessage = ""
-    @State private var showFeedback = false
-    @State private var selectedSubscription: Purchasable = StoreItems.weeklySubscription
-    @State private var subscriptionInfo = ""
+    @StateObject private var viewModel = ContentViewModel()
     
     var body: some View {
         ScrollView {
@@ -24,7 +20,7 @@ struct ContentView: View {
                     .fontWeight(.bold)
                     .padding(.bottom, 20)
                 
-                if isLoading {
+                if viewModel.isLoading {
                     LoadingView()
                 } else {
                     VStack(spacing: 30) {
@@ -36,12 +32,12 @@ struct ContentView: View {
                                 .foregroundColor(.blue)
                             
                             Button("Purchase Super Package") {
-                                Task { await purchaseNonConsumable() }
+                                Task { await viewModel.purchaseNonConsumable() }
                             }
                             .buttonStyle(.borderedProminent)
                             
                             Button("Check Super Package Status") {
-                                checkNonConsumableStatus()
+                                viewModel.checkNonConsumableStatus()
                             }
                             .buttonStyle(.bordered)
                         }
@@ -55,7 +51,7 @@ struct ContentView: View {
                                 .foregroundColor(.green)
                             
                             // Subscription Picker
-                            Picker("Select Subscription", selection: $selectedSubscription) {
+                            Picker("Select Subscription", selection: $viewModel.selectedSubscription) {
                                 Text("Weekly ($0.99)").tag(StoreItems.weeklySubscription)
                                 Text("Yearly ($10.99)").tag(StoreItems.yearlySubscription)
                             }
@@ -63,30 +59,22 @@ struct ContentView: View {
                             .padding(.horizontal)
                             
                             // Purchase current subscription
-                            Button("Purchase \(selectedSubscription == StoreItems.weeklySubscription ? "Weekly" : "Yearly")") {
-                                Task { await purchaseSubscription() }
+                            Button("Purchase \(viewModel.selectedSubscription == StoreItems.weeklySubscription ? "Weekly" : "Yearly")") {
+                                Task { await viewModel.purchaseSubscription() }
                             }
                             .buttonStyle(.borderedProminent)
                             
                             // Switch subscription (purchase the other one)
-                            Button("Switch to \(selectedSubscription == StoreItems.weeklySubscription ? "Yearly" : "Weekly")") {
-                                Task { await switchSubscription() }
+                            Button("Switch to \(viewModel.selectedSubscription == StoreItems.weeklySubscription ? "Yearly" : "Weekly")") {
+                                Task { await viewModel.switchSubscription() }
                             }
                             .buttonStyle(.bordered)
                             
-                            HStack(spacing: 10) {
-                                // Check subscription status
-                                Button("Check Status") {
-                                    checkSubscriptionStatus()
-                                }
-                                .buttonStyle(.bordered)
-                                
-                                // Get subscription info
-                                Button("Get Info") {
-                                    getSubscriptionInfo()
-                                }
-                                .buttonStyle(.bordered)
+                            // Check subscription status
+                            Button("Check Status") {
+                                viewModel.checkSubscriptionStatus()
                             }
+                            .buttonStyle(.bordered)
                         }
                         
                         Divider()
@@ -97,24 +85,32 @@ struct ContentView: View {
                                 .font(.headline)
                                 .foregroundColor(.purple)
                             
-                            HStack(spacing: 10) {
-                                // Purchase coins
-                                Button("Buy 100 Coins ($1.99)") {
-                                    Task { await purchaseConsumable(StoreItems.hundredCoins) }
+                            VStack(spacing: 10) {
+                                HStack(spacing: 10) {
+                                    // Purchase coins
+                                    Button("Buy 100 Coins ($1.99)") {
+                                        Task { await viewModel.purchaseConsumable(StoreItems.hundredCoins) }
+                                    }
+                                    .buttonStyle(.bordered)
+                                    
+                                    // Purchase energy
+                                    Button("Buy 10 Energy ($0.99)") {
+                                        Task { await viewModel.purchaseConsumable(StoreItems.tenEnergy) }
+                                    }
+                                    .buttonStyle(.bordered)
                                 }
-                                .buttonStyle(.bordered)
                                 
-                                // Purchase energy
-                                Button("Buy 10 Energy ($0.99)") {
-                                    Task { await purchaseConsumable(StoreItems.tenEnergy) }
+                                // Display current counts
+                                HStack(spacing: 20) {
+                                    Text("Coins: \(viewModel.coinsCount)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    
+                                    Text("Energy: \(viewModel.energyCount)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                 }
-                                .buttonStyle(.bordered)
                             }
-                            
-                            Button("Check Consumable Status") {
-                                checkConsumableStatus()
-                            }
-                            .buttonStyle(.bordered)
                         }
                         
                         Divider()
@@ -126,12 +122,12 @@ struct ContentView: View {
                                 .foregroundColor(.orange)
                             
                             Button("Check All Products") {
-                                checkAllStatus()
+                                viewModel.checkAllStatus()
                             }
                             .buttonStyle(.bordered)
                             
-                            if !subscriptionInfo.isEmpty {
-                                Text(subscriptionInfo)
+                            if !viewModel.subscriptionInfo.isEmpty {
+                                Text(viewModel.subscriptionInfo)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .padding()
@@ -144,8 +140,8 @@ struct ContentView: View {
                     }
                     .padding()
                     
-                    if showFeedback {
-                        Text(feedbackMessage)
+                    if viewModel.showFeedback {
+                        Text(viewModel.feedbackMessage)
                             .padding()
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
@@ -154,7 +150,7 @@ struct ContentView: View {
                             )
                             .padding()
                             .transition(.opacity)
-                            .animation(.easeInOut, value: showFeedback)
+                            .animation(.easeInOut, value: viewModel.showFeedback)
                     }
                 }
             }
@@ -162,221 +158,9 @@ struct ContentView: View {
         }
         .onAppear {
             Task {
-                await initializeStore()
+                await viewModel.initializeStore()
             }
         }
-        .onReceive(StoreKitTheKit.shared.$storeState) { state in
-            feedbackMessage = "Store state changed: \(state)"
-            showFeedback = true
-        }
-        .onReceive(StoreKitTheKit.shared.$purchaseDataChangedAfterGettingBackOnline) { changed in
-            if changed {
-                feedbackMessage = "Purchase data has been updated"
-                showFeedback = true
-                // Refresh subscription info when data changes
-                getSubscriptionInfo()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            Task {
-                await StoreKitTheKit.shared.syncWithStore()
-            }
-        }
-    }
-    
-    // MARK: - Store Initialization
-    
-    private func initializeStore() async {
-        await StoreKitTheKit.shared.begin()
-        
-        await MainActor.run {
-            isLoading = false
-        }
-    }
-    
-    // MARK: - Non-Consumable Functions
-    
-    private func purchaseNonConsumable() async {
-        await MainActor.run {
-            feedbackMessage = "Processing non-consumable purchase..."
-            showFeedback = true
-        }
-        
-        let result = await StoreKitTheKit.shared.purchaseElement(element: StoreItems.superPackage)
-        
-        await MainActor.run {
-            switch result {
-            case .purchaseCompleted(let purchasable):
-                feedbackMessage = "✅ Successfully purchased: \(purchasable.bundleId)"
-            case .purchaseFailure(let withError):
-                feedbackMessage = "❌ Purchase failed: \(withError)"
-            }
-        }
-    }
-    
-    private func checkNonConsumableStatus() {
-        let isPurchased = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.superPackage)
-        
-        feedbackMessage = isPurchased ?
-            "✅ Super Package is purchased" :
-            "❌ Super Package is not purchased yet"
-        showFeedback = true
-    }
-    
-    // MARK: - Consumable Functions
-    
-    private func purchaseConsumable(_ consumable: Purchasable) async {
-        let consumableName = consumable == StoreItems.hundredCoins ? "100 Coins" : "10 Energy"
-        
-        await MainActor.run {
-            feedbackMessage = "Processing \(consumableName) purchase..."
-            showFeedback = true
-        }
-        
-        let result = await StoreKitTheKit.shared.purchaseElement(element: consumable)
-        
-        await MainActor.run {
-            switch result {
-            case .purchaseCompleted(_):
-                feedbackMessage = "✅ Successfully purchased \(consumableName)!\nYour app should now handle the consumption logic."
-            case .purchaseFailure(let withError):
-                feedbackMessage = "❌ Consumable purchase failed: \(withError)"
-            }
-        }
-    }
-    
-    private func checkConsumableStatus() {
-        let coinsOwned = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.hundredCoins)
-        let energyOwned = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.tenEnergy)
-        
-        var status = "Consumable Status:\n\n"
-        status += "100 Coins: \(coinsOwned ? "✅ Owned" : "❌ Not owned")\n"
-        status += "10 Energy: \(energyOwned ? "✅ Owned" : "❌ Not owned")\n\n"
-        status += "Note: Consumables always show 'Not owned' since they're meant to be consumed by your app after purchase."
-        
-        feedbackMessage = status
-        showFeedback = true
-    }
-    
-    // MARK: - Subscription Functions
-    
-    private func purchaseSubscription() async {
-        let subscriptionName = selectedSubscription == StoreItems.weeklySubscription ? "Weekly" : "Yearly"
-        
-        await MainActor.run {
-            feedbackMessage = "Processing \(subscriptionName) subscription purchase..."
-            showFeedback = true
-        }
-        
-        let result = await StoreKitTheKit.shared.purchaseElement(element: selectedSubscription)
-        
-        await MainActor.run {
-            switch result {
-            case .purchaseCompleted:
-                feedbackMessage = "✅ Successfully subscribed to: \(subscriptionName)"
-                getSubscriptionInfo()
-            case .purchaseFailure(let withError):
-                feedbackMessage = "❌ Subscription failed: \(withError)"
-            }
-        }
-    }
-    
-    private func switchSubscription() async {
-        let targetSubscription = selectedSubscription == StoreItems.weeklySubscription ? 
-                                StoreItems.yearlySubscription : StoreItems.weeklySubscription
-        let targetName = targetSubscription == StoreItems.weeklySubscription ? "Weekly" : "Yearly"
-        
-        await MainActor.run {
-            feedbackMessage = "Switching to \(targetName) subscription..."
-            showFeedback = true
-        }
-        
-        let result = await StoreKitTheKit.shared.purchaseElement(element: targetSubscription)
-        
-        await MainActor.run {
-            switch result {
-            case .purchaseCompleted(_):
-                feedbackMessage = "✅ Successfully switched to \(targetName) subscription"
-                selectedSubscription = targetSubscription
-                getSubscriptionInfo()
-            case .purchaseFailure(let withError):
-                feedbackMessage = "❌ Switch failed: \(withError)"
-            }
-        }
-    }
-    
-    private func checkSubscriptionStatus() {
-        let weeklyActive = StoreKitTheKit.shared.isSubscriptionActive(for: StoreItems.weeklySubscription)
-        let yearlyActive = StoreKitTheKit.shared.isSubscriptionActive(for: StoreItems.yearlySubscription)
-        
-        var status = "Subscription Status:\n"
-        status += "• Weekly: \(weeklyActive ? "✅ Active" : "❌ Inactive")\n"
-        status += "• Yearly: \(yearlyActive ? "✅ Active" : "❌ Inactive")"
-        
-        // Also check detailed status
-        let weeklyStatus = StoreKitTheKit.shared.getSubscriptionStatus(for: StoreItems.weeklySubscription)
-        let yearlyStatus = StoreKitTheKit.shared.getSubscriptionStatus(for: StoreItems.yearlySubscription)
-        
-        status += "\n\nDetailed Status:\n"
-        status += "• Weekly: \(weeklyStatus)\n"
-        status += "• Yearly: \(yearlyStatus)"
-        
-        feedbackMessage = status
-        showFeedback = true
-    }
-    
-    private func getSubscriptionInfo() {
-        var info = "Subscription Details:\n"
-        
-        for subscription in [StoreItems.weeklySubscription, StoreItems.yearlySubscription] {
-            let name = subscription == StoreItems.weeklySubscription ? "Weekly" : "Yearly"
-            let subscriptionInfo = StoreKitTheKit.shared.getSubscriptionInfo(for: subscription)
-            
-            if let subInfo = subscriptionInfo {
-                info += "\n\(name):\n"
-                info += "  • Active: \(subInfo.isActive)\n"
-                info += "  • Expires: \(DateFormatter.localizedString(from: subInfo.expirationDate, dateStyle: .short, timeStyle: .short))\n"
-                
-                if let timeRemaining = StoreKitTheKit.shared.getSubscriptionTimeRemaining(for: subscription) {
-                    let days = Int(timeRemaining / 86400) // Convert seconds to days
-                    let hours = Int((timeRemaining.truncatingRemainder(dividingBy: 86400)) / 3600)
-                    info += "  • Time left: \(days)d \(hours)h\n"
-                }
-            } else {
-                info += "\n\(name): No active subscription\n"
-            }
-        }
-        
-        subscriptionInfo = info
-    }
-    
-    private func checkAllStatus() {
-        var status = "All Products Status:\n\n"
-        
-        // Non-consumable
-        let superPackagePurchased = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.superPackage)
-        status += "Super Package: \(superPackagePurchased ? "✅ Purchased" : "❌ Not purchased")\n\n"
-        
-        // Subscriptions using elementWasPurchased (which checks validity)
-        let weeklyValid = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.weeklySubscription)
-        let yearlyValid = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.yearlySubscription)
-        
-        status += "Weekly Subscription: \(weeklyValid ? "✅ Active" : "❌ Inactive")\n"
-        status += "Yearly Subscription: \(yearlyValid ? "✅ Active" : "❌ Inactive")\n\n"
-        
-        // Consumables (always show as not owned)
-        let coinsOwned = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.hundredCoins)
-        let energyOwned = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.tenEnergy)
-        
-        status += "100 Coins: \(coinsOwned ? "✅ Owned" : "❌ Not owned")\n"
-        status += "10 Energy: \(energyOwned ? "✅ Owned" : "❌ Not owned")\n"
-        status += "(Consumables always show 'Not owned')"
-        
-        feedbackMessage = status
-        showFeedback = true
-        
-        // Also refresh detailed subscription info
-        getSubscriptionInfo()
     }
 }
 
