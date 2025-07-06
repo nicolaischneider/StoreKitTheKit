@@ -10,5 +10,13 @@ import StoreKitTheKit
 
 struct StoreItems {
     
+    // Non-consumable
     static let superPackage = Purchasable(bundleId: "com.nicolaischneider.superpackage", type: .nonConsumable)
+    
+    // Subscriptions
+    static let weeklySubscription = Purchasable(bundleId: "com.nicolaischneider.superdupersub.weekly", type: .autoRenewableSubscription)
+    static let yearlySubscription = Purchasable(bundleId: "com.nicolaischneider.superdupersub.yearly", type: .autoRenewableSubscription)
+    
+    // All items for easy registration
+    static let allItems = [superPackage, weeklySubscription, yearlySubscription]
 }

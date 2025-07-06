@@ -5,7 +5,7 @@ public enum PurchasableType: Sendable {
     case autoRenewableSubscription
 }
 
-public struct Purchasable: Sendable {
+public struct Purchasable: Equatable, Hashable, Sendable {
     
     public init(bundleId: String, type: PurchasableType) {
         self.bundleId = bundleId
