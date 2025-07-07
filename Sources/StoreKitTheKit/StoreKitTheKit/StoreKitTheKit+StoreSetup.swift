@@ -63,92 +63,15 @@ extension StoreKitTheKit {
                 // we'll catch the `failedVerification` error.
                 let transaction = try checkVerified(result)
                 
-                // Check the `productType` of the transaction and get the corresponding product from the store
-                switch transaction.productType {
-                    
-                case .nonConsumable:
-                    if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
-                        purchased.append(purchasedItem)
-                    }
-                    if PurchasableManager.shared.productIDExists(transaction.productID) {
-                        purchasedItemsIds.append(transaction.productID)
-                    }
-                    
-                case .autoRenewable:
-                    // Check if the product ID exists in PurchasableManager
-                    guard PurchasableManager.shared.productIDExists(transaction.productID) else {
-                        Logger.store.addLog("Product \(transaction.productID) not found in PurchasableManager")
-                        continue
-                    }
-                    
-                    // Create subscription info from transaction
-                    let subscriptionInfo = SubscriptionInfo(
-                        productID: transaction.productID,
-                        expirationDate: transaction.expirationDate ?? Date(),
-                        isActive: true,
-                        renewalDate: nil,
-                        gracePeriodExpirationDate: nil,
-                        subscriptionGroupID: transaction.subscriptionGroupID ?? ""
-                    )
-                    activeSubscriptions[transaction.productID] = subscriptionInfo
-                    
-                    // Add to purchased items if subscription is active
-                    if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
-                        purchased.append(purchasedItem)
-                    }
-                    purchasedItemsIds.append(transaction.productID)
-                    
-                case .nonRenewable:
-                    // Check if the product ID exists in PurchasableManager
-                    guard PurchasableManager.shared.productIDExists(transaction.productID) else {
-                        Logger.store.addLog("Product \(transaction.productID) not found in PurchasableManager")
-                        continue
-                    }
-                    
-                    // For non-renewable subscriptions, calculate expiration from purchase date + duration
-                    // StoreKit test environment may not set expirationDate correctly
-                    let purchaseDate = transaction.purchaseDate
-                    let expirationDate: Date
-                    
-                    if let transactionExpirationDate = transaction.expirationDate {
-                        // Use StoreKit's expiration date if available
-                        expirationDate = transactionExpirationDate
-                        Logger.store.addLog("Using StoreKit expiration date for \(transaction.productID): \(transactionExpirationDate)")
-                    } else {
-                        // Fallback: calculate expiration based on product duration (30 days for our test product)
-                        expirationDate = Calendar.current.date(byAdding: .day, value: 30, to: purchaseDate) ?? Date()
-                        Logger.store.addLog("Calculated expiration date for \(transaction.productID): \(expirationDate)")
-                    }
-                    
-                    let isStillActive = expirationDate > Date()
-                    Logger.store.addLog("Non-renewable subscription \(transaction.productID) - Active: \(isStillActive), Expires: \(expirationDate)")
-                    
-                    // Create subscription info from transaction
-                    let subscriptionInfo = SubscriptionInfo(
-                        productID: transaction.productID,
-                        expirationDate: expirationDate,
-                        isActive: isStillActive,
-                        renewalDate: nil,
-                        gracePeriodExpirationDate: nil,
-                        subscriptionGroupID: transaction.subscriptionGroupID ?? ""
-                    )
-                    activeSubscriptions[transaction.productID] = subscriptionInfo
-                    
-                    // Only add to purchased items if non-renewable subscription is still active
-                    if isStillActive {
-                        if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
-                            purchased.append(purchasedItem)
-                        }
-                        purchasedItemsIds.append(transaction.productID)
-                    }
-                    
-                case .consumable:
-                    // Consumables are processed but not tracked in purchased products
-                    // Apps handle their own consumption logic after successful purchase
-                    if PurchasableManager.shared.productIDExists(transaction.productID) {
-                        Logger.store.addLog("Consumable purchase processed: \(transaction.productID)")
-                    }
-                default:
+                // Process the transaction based on product type
+                let result = processTransaction(
+                    transaction,
+                    purchased: &purchased,
+                    purchasedItemsIds: &purchasedItemsIds,
+                    activeSubscriptions: &activeSubscriptions
+                )
+                
+                if !result {
                     continue
                 }
             } catch {
@@ -184,5 +107,147 @@ extension StoreKitTheKit {
         case .verified(let safe):
             return safe
         }
+    }
+    
+    // MARK: - Private Transaction Processing
+    
+    private func processTransaction(
+        _ transaction: Transaction,
+        purchased: inout [Product],
+        purchasedItemsIds: inout [String],
+        activeSubscriptions: inout [String: SubscriptionInfo]
+    ) -> Bool {
+        switch transaction.productType {
+        case .nonConsumable:
+            return processNonConsumableTransaction(
+                transaction,
+                purchased: &purchased,
+                purchasedItemsIds: &purchasedItemsIds)
+            
+        case .autoRenewable:
+            return processAutoRenewableSubscriptionTransaction(
+                transaction,
+                purchased: &purchased,
+                purchasedItemsIds: &purchasedItemsIds,
+                activeSubscriptions: &activeSubscriptions)
+            
+        case .nonRenewable:
+            return processNonRenewableSubscriptionTransaction(
+                transaction,
+                purchased: &purchased,
+                purchasedItemsIds: &purchasedItemsIds,
+                activeSubscriptions: &activeSubscriptions)
+            
+        case .consumable:
+            return processConsumableTransaction(transaction)
+            
+        default:
+            return false
+        }
+    }
+    
+    private func processNonConsumableTransaction(
+        _ transaction: Transaction,
+        purchased: inout [Product],
+        purchasedItemsIds: inout [String]
+    ) -> Bool {
+        if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
+            purchased.append(purchasedItem)
+        }
+        if PurchasableManager.shared.productIDExists(transaction.productID) {
+            purchasedItemsIds.append(transaction.productID)
+        }
+        return true
+    }
+    
+    private func processAutoRenewableSubscriptionTransaction(
+        _ transaction: Transaction,
+        purchased: inout [Product],
+        purchasedItemsIds: inout [String],
+        activeSubscriptions: inout [String: SubscriptionInfo]
+    ) -> Bool {
+        // Check if the product ID exists in PurchasableManager
+        guard PurchasableManager.shared.productIDExists(transaction.productID) else {
+            Logger.store.addLog("Product \(transaction.productID) not found in PurchasableManager")
+            return false
+        }
+        
+        // Create subscription info from transaction
+        let subscriptionInfo = SubscriptionInfo(
+            productID: transaction.productID,
+            expirationDate: transaction.expirationDate ?? Date(),
+            isActive: true,
+            renewalDate: nil,
+            gracePeriodExpirationDate: nil,
+            subscriptionGroupID: transaction.subscriptionGroupID ?? ""
+        )
+        activeSubscriptions[transaction.productID] = subscriptionInfo
+        
+        // Add to purchased items if subscription is active
+        if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
+            purchased.append(purchasedItem)
+        }
+        purchasedItemsIds.append(transaction.productID)
+        return true
+    }
+    
+    private func processNonRenewableSubscriptionTransaction(
+        _ transaction: Transaction,
+        purchased: inout [Product],
+        purchasedItemsIds: inout [String],
+        activeSubscriptions: inout [String: SubscriptionInfo]
+    ) -> Bool {
+        // Check if the product ID exists in PurchasableManager
+        guard PurchasableManager.shared.productIDExists(transaction.productID) else {
+            Logger.store.addLog("Product \(transaction.productID) not found in PurchasableManager")
+            return false
+        }
+        
+        // For non-renewable subscriptions, calculate expiration from purchase date + duration
+        // StoreKit test environment may not set expirationDate correctly
+        let purchaseDate = transaction.purchaseDate
+        let expirationDate: Date
+        
+        if let transactionExpirationDate = transaction.expirationDate {
+            // Use StoreKit's expiration date if available
+            expirationDate = transactionExpirationDate
+            Logger.store.addLog("Using StoreKit expiration date for \(transaction.productID): \(transactionExpirationDate)")
+        } else {
+            // Fallback: calculate expiration based on product duration (30 days for our test product)
+            expirationDate = Calendar.current.date(byAdding: .day, value: 30, to: purchaseDate) ?? Date()
+            Logger.store.addLog("Calculated expiration date for \(transaction.productID): \(expirationDate)")
+        }
+        
+        let isStillActive = expirationDate > Date()
+        Logger.store.addLog("Non-renewable subscription \(transaction.productID) - Active: \(isStillActive), Expires: \(expirationDate)")
+        
+        // Create subscription info from transaction
+        let subscriptionInfo = SubscriptionInfo(
+            productID: transaction.productID,
+            expirationDate: expirationDate,
+            isActive: isStillActive,
+            renewalDate: nil,
+            gracePeriodExpirationDate: nil,
+            subscriptionGroupID: transaction.subscriptionGroupID ?? ""
+        )
+        activeSubscriptions[transaction.productID] = subscriptionInfo
+        
+        // Only add to purchased items if non-renewable subscription is still active
+        if isStillActive {
+            if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
+                purchased.append(purchasedItem)
+            }
+            purchasedItemsIds.append(transaction.productID)
+        }
+        return true
+    }
+    
+    private func processConsumableTransaction(_ transaction: Transaction) -> Bool {
+        // Consumables are processed but not tracked in purchased products
+        // Apps handle their own consumption logic after successful purchase
+        if PurchasableManager.shared.productIDExists(transaction.productID) {
+            Logger.store.addLog("Consumable purchase processed: \(transaction.productID)")
+        }
+        return true
     }
 }
