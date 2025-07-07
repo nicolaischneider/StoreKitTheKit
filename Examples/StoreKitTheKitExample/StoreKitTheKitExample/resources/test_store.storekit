@@ -11,7 +11,21 @@
   },
   "identifier" : "CBAED9B1",
   "nonRenewingSubscriptions" : [
-
+    {
+      "displayPrice" : "5.99",
+      "familyShareable" : false,
+      "internalID" : "F535CDA7",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nicolaischneider.premiumpass.thirty",
+      "referenceName" : "premium pass",
+      "type" : "NonRenewingSubscription"
+    }
   ],
   "products" : [
     {
@@ -28,15 +42,51 @@
       "productID" : "com.nicolaischneider.superpackage",
       "referenceName" : "Super Package",
       "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "COINS100",
+      "localizations" : [
+        {
+          "description" : "Get 100 gold coins for your adventures",
+          "displayName" : "100 Gold Coins",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nicolaischneider.coins.hundred",
+      "referenceName" : "100 Gold Coins",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "ENERGY10",
+      "localizations" : [
+        {
+          "description" : "Refill your energy to keep playing",
+          "displayName" : "10 Energy",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nicolaischneider.energy.ten",
+      "referenceName" : "10 Energy",
+      "type" : "Consumable"
     }
   ],
   "settings" : {
+    "_compatibilityTimeRate" : {
+      "3" : 6
+    },
     "_failTransactionsEnabled" : false,
     "_locale" : "en_US",
     "_storefront" : "USA",
     "_storeKitErrors" : [
       {
-        "current" : null,
+        "current" : {
+          "index" : 2,
+          "type" : "generic"
+        },
         "enabled" : false,
         "name" : "Load Products"
       },
@@ -66,7 +116,10 @@
         "name" : "App Transaction"
       },
       {
-        "current" : null,
+        "current" : {
+          "index" : 3,
+          "type" : "generic"
+        },
         "enabled" : false,
         "name" : "Manage Subscriptions Sheet"
       },
@@ -80,10 +133,75 @@
         "enabled" : false,
         "name" : "Offer Code Redeem Sheet"
       }
-    ]
+    ],
+    "_timeRate" : 1002
   },
   "subscriptionGroups" : [
+    {
+      "id" : "DC075F47",
+      "localizations" : [
 
+      ],
+      "name" : "Super Duper Sub",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "0.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "05B821A0",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "",
+              "displayName" : "",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.nicolaischneider.superdupersub.weekly",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Super Duper Sub Weekly",
+          "subscriptionGroupID" : "DC075F47",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "10.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "9571A92B",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "",
+              "displayName" : "",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.nicolaischneider.superdupersub.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Super Super Sub Yearly",
+          "subscriptionGroupID" : "DC075F47",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
   ],
   "version" : {
     "major" : 4,

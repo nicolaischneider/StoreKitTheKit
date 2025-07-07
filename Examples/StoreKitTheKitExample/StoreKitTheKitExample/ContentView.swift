@@ -7,48 +7,166 @@
 
 import SwiftUI
 import StoreKitTheKit
-import Combine
 
 struct ContentView: View {
     
-    @State private var isLoading = true
-    @State private var feedbackMessage = ""
-    @State private var showFeedback = false
-    
-    private var cancellables = Set<AnyCancellable>()
+    @StateObject private var viewModel = ContentViewModel()
     
     var body: some View {
-        ZStack {
-            VStack(spacing: 20) {
+        ScrollView {
+            VStack(spacing: 25) {
                 Text("StoreKitTheKit Tester")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .padding(.bottom, 30)
+                    .padding(.bottom, 20)
                 
-                if isLoading {
+                if viewModel.isLoading {
                     LoadingView()
                 } else {
                     VStack(spacing: 30) {
-                        // Purchase button
-                        Button(action: {
-                            Task {
-                                await purchaseItem()
+                        
+                        // Non-Consumable Section
+                        VStack(spacing: 15) {
+                            Text("Non-Consumable Testing")
+                                .font(.headline)
+                                .foregroundColor(.blue)
+                            
+                            Button("Purchase Super Package (\(viewModel.superPackagePrice))") {
+                                Task { await viewModel.purchaseNonConsumable() }
                             }
-                        }) {
-                            ActionButton(title: "Purchase Super Package", iconName: "cart")
+                            .buttonStyle(.borderedProminent)
+                            
+                            Button("Check Super Package Status") {
+                                viewModel.checkNonConsumableStatus()
+                            }
+                            .buttonStyle(.bordered)
                         }
                         
-                        // Check purchase status button
-                        Button(action: {
-                            checkPurchaseStatus()
-                        }) {
-                            ActionButton(title: "Check Purchase Status", iconName: "magnifyingglass")
+                        Divider()
+                        
+                        // Subscription Section
+                        VStack(spacing: 15) {
+                            Text("Subscription Testing")
+                                .font(.headline)
+                                .foregroundColor(.green)
+                            
+                            // Subscription Picker
+                            Picker("Select Subscription", selection: $viewModel.selectedSubscription) {
+                                Text("Weekly (\(viewModel.weeklySubscriptionPrice))").tag(StoreItems.weeklySubscription)
+                                Text("Yearly (\(viewModel.yearlySubscriptionPrice))").tag(StoreItems.yearlySubscription)
+                            }
+                            .pickerStyle(.segmented)
+                            .padding(.horizontal)
+                            
+                            // Purchase current subscription
+                            Button("Purchase \(viewModel.selectedSubscription == StoreItems.weeklySubscription ? "Weekly (\(viewModel.weeklySubscriptionPrice))" : "Yearly (\(viewModel.yearlySubscriptionPrice))")") {
+                                Task { await viewModel.purchaseSubscription() }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            
+                            // Switch subscription (purchase the other one)
+                            Button("Switch to \(viewModel.selectedSubscription == StoreItems.weeklySubscription ? "Yearly (\(viewModel.yearlySubscriptionPrice))" : "Weekly (\(viewModel.weeklySubscriptionPrice))")") {
+                                Task { await viewModel.switchSubscription() }
+                            }
+                            .buttonStyle(.bordered)
+                            
+                            // Check subscription status
+                            Button("Check Status") {
+                                viewModel.checkSubscriptionStatus()
+                            }
+                            .buttonStyle(.bordered)
+                            
+                            // Manage subscription
+                            Button("Manage Subscription") {
+                                Task { await viewModel.manageSubscription() }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        
+                        Divider()
+                        
+                        // Non-Renewable Subscription Section
+                        VStack(spacing: 15) {
+                            Text("Non-Renewable Subscription Testing")
+                                .font(.headline)
+                                .foregroundColor(.orange)
+                            
+                            Button("Purchase Premium Pass - 30 Days (\(viewModel.premiumPassPrice))") {
+                                Task { await viewModel.purchaseNonRenewableSubscription() }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            
+                            Button("Check Premium Pass Status") {
+                                viewModel.checkNonRenewableSubscriptionStatus()
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        
+                        Divider()
+                        
+                        // Consumable Section
+                        VStack(spacing: 15) {
+                            Text("Consumable Testing")
+                                .font(.headline)
+                                .foregroundColor(.purple)
+                            
+                            VStack(spacing: 10) {
+                                HStack(spacing: 10) {
+                                    // Purchase coins
+                                    Button("Buy 100 Coins (\(viewModel.hundredCoinsPrice))") {
+                                        Task { await viewModel.purchaseConsumable(StoreItems.hundredCoins) }
+                                    }
+                                    .buttonStyle(.bordered)
+                                    
+                                    // Purchase energy
+                                    Button("Buy 10 Energy (\(viewModel.tenEnergyPrice))") {
+                                        Task { await viewModel.purchaseConsumable(StoreItems.tenEnergy) }
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                                
+                                // Display current counts
+                                HStack(spacing: 20) {
+                                    Text("Coins: \(viewModel.coinsCount)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    
+                                    Text("Energy: \(viewModel.energyCount)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        // Status Section
+                        VStack(spacing: 10) {
+                            Text("Current Status")
+                                .font(.headline)
+                                .foregroundColor(.orange)
+                            
+                            Button("Check All Products") {
+                                viewModel.checkAllStatus()
+                            }
+                            .buttonStyle(.bordered)
+                            
+                            if !viewModel.subscriptionInfo.isEmpty {
+                                Text(viewModel.subscriptionInfo)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(Color(.systemGray6))
+                                    )
+                            }
                         }
                     }
                     .padding()
                     
-                    if showFeedback {
-                        Text(feedbackMessage)
+                    if viewModel.showFeedback {
+                        Text(viewModel.feedbackMessage)
                             .padding()
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
@@ -57,7 +175,7 @@ struct ContentView: View {
                             )
                             .padding()
                             .transition(.opacity)
-                            .animation(.easeInOut, value: showFeedback)
+                            .animation(.easeInOut, value: viewModel.showFeedback)
                     }
                 }
             }
@@ -65,57 +183,29 @@ struct ContentView: View {
         }
         .onAppear {
             Task {
-                // Initialize StoreKitTheKit
-                await initializeStore()
+                await viewModel.initializeStore()
             }
         }
         .onReceive(StoreKitTheKit.shared.$storeState) { state in
-            feedbackMessage = "Store state changed: \(state)"
-            showFeedback = true
+            viewModel.feedbackMessage = "Store state changed: \(state)"
+            viewModel.showFeedback = true
+            // Update prices when store becomes available
+            if state == .available {
+                viewModel.updatePrices()
+            }
         }
         .onReceive(StoreKitTheKit.shared.$purchaseDataChangedAfterGettingBackOnline) { changed in
             if changed {
-                feedbackMessage = "Purchase data has been updated"
-                showFeedback = true
+                viewModel.feedbackMessage = "Purchase data has been updated"
+                viewModel.showFeedback = true
+                viewModel.getSubscriptionInfo()
             }
         }
-    }
-    
-    private func initializeStore() async {
-        // Simulate loading with a slight delay for testing
-        await StoreKitTheKit.shared.begin()
-        
-        // Update UI on main thread
-        await MainActor.run {
-            isLoading = false
-        }
-    }
-    
-    private func purchaseItem() async {
-        await MainActor.run {
-            feedbackMessage = "Processing purchase..."
-            showFeedback = true
-        }
-        
-        let result = await StoreKitTheKit.shared.purchaseElement(element: StoreItems.superPackage)
-        
-        await MainActor.run {
-            switch result {
-            case .purchaseCompleted(let purchasable):
-                feedbackMessage = "Successfully purchased: \(purchasable.bundleId)"
-            case .purchaseFailure(let withError):
-                feedbackMessage = "Purchase failed: \(withError)"
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            Task {
+                await StoreKitTheKit.shared.syncWithStore()
             }
         }
-    }
-    
-    private func checkPurchaseStatus() {
-        let isPurchased = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.superPackage)
-        
-        feedbackMessage = isPurchased ?
-            "Super Package is purchased" :
-            "Super Package is not purchased yet"
-        showFeedback = true
     }
 }
 

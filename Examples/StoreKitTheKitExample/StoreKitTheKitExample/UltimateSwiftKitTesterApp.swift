@@ -14,9 +14,7 @@ struct UltimateSwiftKitTesterApp: App {
         WindowGroup {
             ContentView()
                 .onAppear {
-                    PurchasableManager.shared.register(purchasableItems: [
-                        StoreItems.superPackage
-                    ])
+                    PurchasableManager.shared.register(purchasableItems: StoreItems.allItems)
                 }
         }
     }

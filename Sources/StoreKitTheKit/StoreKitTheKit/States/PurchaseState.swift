@@ -4,7 +4,6 @@ public enum PurchaseState: Sendable {
     case purchaseCompleted(Purchasable)
     case purchaseFailure(PurchaseError)
     
-    
     public enum PurchaseError: Error, Sendable {
         // Product errors
         case productNotFound
@@ -17,5 +16,11 @@ public enum PurchaseState: Sendable {
         // System errors
         case unknownPurchaseState
         case purchaseError(Error)
+        
+        // Subscription errors
+        case subscriptionExpired
+        case subscriptionNotActive
+        case subscriptionInGracePeriod
+        case subscriptionBillingRetry
     }
 }

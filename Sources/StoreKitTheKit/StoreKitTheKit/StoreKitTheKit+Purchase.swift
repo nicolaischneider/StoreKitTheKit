@@ -24,7 +24,7 @@ extension StoreKitTheKit {
         // in case store not available try to restart that dum retard fuck
         if !storeIsAvailable {
             Logger.store.addLog("Store not available. Trying to reconnect.")
-            await self.connectToStore()
+            await self.syncWithStore()
         }
         
         return await purchase(element)
@@ -91,7 +91,7 @@ extension StoreKitTheKit: SKPaymentTransactionObserver {
     }
     
     public func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
-        guard let purchasable = PurchasableManager.shared.produc(id: product.productIdentifier) else {
+        guard let purchasable = PurchasableManager.shared.product(id: product.productIdentifier) else {
             Logger.store.addLog("Product couldn't be identified")
             return false
         }

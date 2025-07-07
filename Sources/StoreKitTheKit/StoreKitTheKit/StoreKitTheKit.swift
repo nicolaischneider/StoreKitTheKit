@@ -11,6 +11,7 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     var products = [Product]()
     var purchasedProducts = [Product]()
     var updateListenerTask: Task<Void, Error>? = nil
+    private var isSyncing = false
     
     // Add network monitor
     private let networkMonitor = NWPathMonitor()
@@ -59,7 +60,7 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
         await MainActor.run {
             self.storeState = .checking
         }
-        await connectToStore()
+        await syncWithStore()
     }
     
     // MARK: - initialize Store and load products
@@ -69,10 +70,20 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
             self.storeState = .checking
         }
         SKPaymentQueue.default().add(self)
-        await connectToStore()
+        await syncWithStore()
     }
     
-    func connectToStore () async {
+    public func syncWithStore () async {
+        // Prevent concurrent sync operations
+        if isSyncing {
+            Logger.store.addLog("Sync already in progress, skipping...")
+            return
+        }
+        
+        isSyncing = true
+        defer { isSyncing = false }
+        
+        Logger.store.addLog("Syncing with StoreKit...")
         updateListenerTask?.cancel()
         updateListenerTask = listenForTransactions()
         await requestProducts()

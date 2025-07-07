@@ -13,23 +13,59 @@ extension StoreKitTheKit {
      StoreKit's purchase records. If the store is unavailable, it falls back to local storage
      to check the purchase status.
      
+     - Note: For consumable items, this always returns `false` since consumables are meant to be 
+             purchased and consumed by the app. Apps should handle their own consumption logic.
+     
      - Parameter element: The Purchasable item to check for purchase status
-     - Returns: Boolean value indicating whether the item has been purchased
+     - Returns: Boolean value indicating whether the item has been purchased (always false for consumables)
      */
     public func elementWasPurchased(element: Purchasable) -> Bool {
+        // Consumables are not "owned" - they're purchased and consumed
+        // Apps should handle their own consumption logic
+        if element.type == .consumable {
+            return false
+        }
         
-        // check whether regular purchase has been made
+        // check whether purchase has been made / subscription is active
         if storeIsAvailable {
             return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
+            
+        // Fallback to keychain
         } else {
-            // Fallback to keychain
-            Logger.store.addLog("Retrieving \(element.bundleId) from local storage instead of StoreKit due to inavailability.")
-            let purchasedIds = LocalStoreManager.shared.getPurchasedProductIds()
-            let available = purchasedIds.contains(element.bundleId)
-            if available {
-                Logger.store.addLog("product available: \(available)")
+            switch element.type {
+            case .nonConsumable:
+                return isNonConsumablePurchasedLocally(element: element)
+            case .autoRenewableSubscription, .nonRenewableSubscription:
+                return isSubscriptionActiveLocally(element: element)
+            case .consumable:
+                return false // Consumables are never "owned"
             }
-            return available
+        }
+    }
+    
+    private func isNonConsumablePurchasedLocally(element: Purchasable) -> Bool {
+        Logger.store.addLog("Retrieving \(element.bundleId) from local storage instead of StoreKit due to inavailability.")
+        let purchasedIds = LocalStoreManager.shared.getPurchasedProductIds()
+        let available = purchasedIds.contains(element.bundleId)
+        if available {
+            Logger.store.addLog("product available: \(available)")
+        }
+        return available
+    }
+    
+    private func isSubscriptionActiveLocally(element: Purchasable) -> Bool {
+        if storeIsAvailable {
+            // For non-renewable subscriptions, we need to double-check expiration even if in purchasedProducts
+            if element.type == .nonRenewableSubscription {
+                return LocalStoreManager.shared.isSubscriptionActive(for: element.bundleId)
+            } else {
+                // For auto-renewable subscriptions, being in purchasedProducts means it's active
+                return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
+            }
+        } else {
+            // Fallback to local storage for subscription validation
+            Logger.store.addLog("Checking subscription \(element.bundleId) from local storage due to store unavailability.")
+            return LocalStoreManager.shared.isSubscriptionActive(for: element.bundleId)
         }
     }
     
