@@ -22,6 +22,14 @@ class ContentViewModel: ObservableObject {
     @Published var coinsCount = 0
     @Published var energyCount = 0
     
+    // Dynamic pricing
+    @Published var superPackagePrice = "Loading..."
+    @Published var weeklySubscriptionPrice = "Loading..."
+    @Published var yearlySubscriptionPrice = "Loading..."
+    @Published var premiumPassPrice = "Loading..."
+    @Published var hundredCoinsPrice = "Loading..."
+    @Published var tenEnergyPrice = "Loading..."
+    
     init() {
         setupObservers()
     }
@@ -39,7 +47,19 @@ class ContentViewModel: ObservableObject {
     
     func initializeStore() async {
         await StoreKitTheKit.shared.begin()
+        updatePrices()
         isLoading = false
+    }
+    
+    // MARK: - Price Management
+    
+    func updatePrices() {
+        superPackagePrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.superPackage) ?? "N/A"
+        weeklySubscriptionPrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.weeklySubscription) ?? "N/A"
+        yearlySubscriptionPrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.yearlySubscription) ?? "N/A"
+        premiumPassPrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.premiumPass) ?? "N/A"
+        hundredCoinsPrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.hundredCoins) ?? "N/A"
+        tenEnergyPrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.tenEnergy) ?? "N/A"
     }
     
     // MARK: - Non-Consumable Functions

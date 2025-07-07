@@ -31,7 +31,7 @@ struct ContentView: View {
                                 .font(.headline)
                                 .foregroundColor(.blue)
                             
-                            Button("Purchase Super Package") {
+                            Button("Purchase Super Package (\(viewModel.superPackagePrice))") {
                                 Task { await viewModel.purchaseNonConsumable() }
                             }
                             .buttonStyle(.borderedProminent)
@@ -52,20 +52,20 @@ struct ContentView: View {
                             
                             // Subscription Picker
                             Picker("Select Subscription", selection: $viewModel.selectedSubscription) {
-                                Text("Weekly ($0.99)").tag(StoreItems.weeklySubscription)
-                                Text("Yearly ($10.99)").tag(StoreItems.yearlySubscription)
+                                Text("Weekly (\(viewModel.weeklySubscriptionPrice))").tag(StoreItems.weeklySubscription)
+                                Text("Yearly (\(viewModel.yearlySubscriptionPrice))").tag(StoreItems.yearlySubscription)
                             }
                             .pickerStyle(.segmented)
                             .padding(.horizontal)
                             
                             // Purchase current subscription
-                            Button("Purchase \(viewModel.selectedSubscription == StoreItems.weeklySubscription ? "Weekly" : "Yearly")") {
+                            Button("Purchase \(viewModel.selectedSubscription == StoreItems.weeklySubscription ? "Weekly (\(viewModel.weeklySubscriptionPrice))" : "Yearly (\(viewModel.yearlySubscriptionPrice))")") {
                                 Task { await viewModel.purchaseSubscription() }
                             }
                             .buttonStyle(.borderedProminent)
                             
                             // Switch subscription (purchase the other one)
-                            Button("Switch to \(viewModel.selectedSubscription == StoreItems.weeklySubscription ? "Yearly" : "Weekly")") {
+                            Button("Switch to \(viewModel.selectedSubscription == StoreItems.weeklySubscription ? "Yearly (\(viewModel.yearlySubscriptionPrice))" : "Weekly (\(viewModel.weeklySubscriptionPrice))")") {
                                 Task { await viewModel.switchSubscription() }
                             }
                             .buttonStyle(.bordered)
@@ -91,7 +91,7 @@ struct ContentView: View {
                                 .font(.headline)
                                 .foregroundColor(.orange)
                             
-                            Button("Purchase Premium Pass - 30 Days ($2.99)") {
+                            Button("Purchase Premium Pass - 30 Days (\(viewModel.premiumPassPrice))") {
                                 Task { await viewModel.purchaseNonRenewableSubscription() }
                             }
                             .buttonStyle(.borderedProminent)
@@ -113,13 +113,13 @@ struct ContentView: View {
                             VStack(spacing: 10) {
                                 HStack(spacing: 10) {
                                     // Purchase coins
-                                    Button("Buy 100 Coins ($1.99)") {
+                                    Button("Buy 100 Coins (\(viewModel.hundredCoinsPrice))") {
                                         Task { await viewModel.purchaseConsumable(StoreItems.hundredCoins) }
                                     }
                                     .buttonStyle(.bordered)
                                     
                                     // Purchase energy
-                                    Button("Buy 10 Energy ($0.99)") {
+                                    Button("Buy 10 Energy (\(viewModel.tenEnergyPrice))") {
                                         Task { await viewModel.purchaseConsumable(StoreItems.tenEnergy) }
                                     }
                                     .buttonStyle(.bordered)
@@ -189,6 +189,10 @@ struct ContentView: View {
         .onReceive(StoreKitTheKit.shared.$storeState) { state in
             viewModel.feedbackMessage = "Store state changed: \(state)"
             viewModel.showFeedback = true
+            // Update prices when store becomes available
+            if state == .available {
+                viewModel.updatePrices()
+            }
         }
         .onReceive(StoreKitTheKit.shared.$purchaseDataChangedAfterGettingBackOnline) { changed in
             if changed {
