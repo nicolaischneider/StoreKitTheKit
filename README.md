@@ -17,7 +17,7 @@ A lightweight wrapper for StoreKit2 that makes implementing in-app purchases sim
 1. **Fast Integration** - Set up StoreKit in minutes, not days
 2. **Seamless Offline Support** - Robust local storage ensures purchases work even without internet
 3. **Intelligent Connection Management** - Automatically handles transitions between online and offline states of the Store
-4. **Focused Simplicity** - Currently only available for non-consumable IAPs (with consumables and subscriptions coming soon)
+4. **Comprehensive Support** - Supports all product types: non-consumable IAPs, consumables, auto-renewable subscriptions, and non-renewable subscriptions
 5. **Security** - Added Receipt Validation
 
 
@@ -44,7 +44,10 @@ Then run `pod install` and open your `.xcworkspace`.
 ### 1. Register your items
 ```swift
 PurchasableManager.shared.register(purchasableItems: [
-    Purchasable(bundleId: "com.example.premium", type: .nonConsumable)
+    Purchasable(bundleId: "com.example.premium", type: .nonConsumable),
+    Purchasable(bundleId: "com.example.subscription", type: .autoRenewableSubscription),
+    Purchasable(bundleId: "com.example.coins", type: .consumable),
+    Purchasable(bundleId: "com.example.season", type: .nonRenewableSubscription)
 ])
 ```
 
@@ -62,7 +65,11 @@ let result = await StoreKitTheKit.shared.purchaseElement(element: premiumItem)
 
 ### 4. Check purchase status
 ```swift
+// For non-consumables and subscriptions
 let isPremium = StoreKitTheKit.shared.elementWasPurchased(element: premiumItem)
+
+// For consumables (always returns false - handle consumption in your app)
+let wasConsumed = StoreKitTheKit.shared.elementWasPurchased(element: consumableItem)
 ```
 
 ### 5. Restore purchases
@@ -115,6 +122,42 @@ func subscribe() {
             }
         }
         .store(in: &cancellables)
+}
+```
+
+## Subscription Management
+
+### Check subscription status
+```swift
+// Basic status check
+let isActive = StoreKitTheKit.shared.isSubscriptionActive(for: subscription)
+
+// Detailed status information
+let status = StoreKitTheKit.shared.getSubscriptionStatus(for: subscription)
+// Returns: active, expired, inGracePeriod, inBillingRetryPeriod, revoked, unknown
+
+// Get remaining time
+let timeRemaining = StoreKitTheKit.shared.getSubscriptionTimeRemaining(for: subscription)
+```
+
+### Manage subscriptions
+```swift
+// Open iOS subscription management
+StoreKitTheKit.shared.manageSubscription(for: subscription)
+```
+
+## Consumable Purchases
+
+Consumables work with the same purchase API but require different handling:
+
+```swift
+// Purchase consumable
+let result = await StoreKitTheKit.shared.purchaseElement(element: consumableItem)
+
+// Note: elementWasPurchased() always returns false for consumables
+// Handle consumption logic in your app after successful purchase
+if case .success = result {
+    // Add coins to user balance, etc.
 }
 ```
 
