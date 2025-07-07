@@ -240,4 +240,16 @@ class ContentViewModel: ObservableObject {
         feedbackMessage = message
         showFeedback = true
     }
+    
+    func manageSubscription() async {
+        feedbackMessage = "Opening subscription management..."
+        showFeedback = true
+        
+        do {
+            try await StoreKitTheKit.shared.manageSubscription(for: selectedSubscription)
+            feedbackMessage = "Subscription management opened successfully"
+        } catch {
+            feedbackMessage = "❌ Failed to open subscription management: \(error)"
+        }
+    }
 }

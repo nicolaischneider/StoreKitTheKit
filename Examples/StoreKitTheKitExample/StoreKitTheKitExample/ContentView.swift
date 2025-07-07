@@ -75,6 +75,12 @@ struct ContentView: View {
                                 viewModel.checkSubscriptionStatus()
                             }
                             .buttonStyle(.bordered)
+                            
+                            // Manage subscription
+                            Button("Manage Subscription") {
+                                Task { await viewModel.manageSubscription() }
+                            }
+                            .buttonStyle(.bordered)
                         }
                         
                         Divider()

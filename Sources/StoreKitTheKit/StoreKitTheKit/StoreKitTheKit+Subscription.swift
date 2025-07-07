@@ -87,6 +87,38 @@ extension StoreKitTheKit {
         return getSubscriptionInfo(for: element)?.expirationDate
     }
     
+    // MARK: - Subscription Management
+    
+    /**
+     Opens subscription management by attempting to repurchase an active auto-renewable subscription.
+     
+     This clever approach triggers Apple's subscription management interface when trying to repurchase
+     an already active subscription. The system will show options to manage, upgrade, or downgrade.
+     
+     - Parameter element: The auto-renewable subscription to manage
+     - Throws: StoreError if the element is not an auto-renewable subscription or not currently active
+     
+     - Note: Only works for auto-renewable subscriptions that are currently active
+     */
+    public func manageSubscription(for element: Purchasable) async throws {
+        // Check if it's an auto-renewable subscription
+        guard element.type == .autoRenewableSubscription else {
+            Logger.store.addLog("Element \(element.bundleId) is not an auto-renewable subscription", level: .error)
+            throw StoreError.subscriptionNotFound
+        }
+        
+        // Check if the subscription is currently active (in purchasedProducts)
+        guard self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil else {
+            Logger.store.addLog("Subscription \(element.bundleId) is not currently active", level: .error)
+            throw StoreError.subscriptionNotFound
+        }
+        
+        Logger.store.addLog("Opening subscription management for \(element.bundleId) by attempting repurchase...")
+        
+        // Attempt to repurchase the active subscription - this will trigger subscription management UI
+        let _ = await purchaseElement(element: element)
+    }
+    
     // MARK: - Private Helper Methods
     
     private func getSubscriptionStatusFromStore(productID: String) -> SubscriptionStatus {
