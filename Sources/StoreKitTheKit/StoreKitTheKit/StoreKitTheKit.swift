@@ -11,6 +11,7 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     var products = [Product]()
     var purchasedProducts = [Product]()
     var updateListenerTask: Task<Void, Error>? = nil
+    private var isSyncing = false
     
     // Add network monitor
     private let networkMonitor = NWPathMonitor()
@@ -73,6 +74,15 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     }
     
     public func syncWithStore () async {
+        // Prevent concurrent sync operations
+        if isSyncing {
+            Logger.store.addLog("Sync already in progress, skipping...")
+            return
+        }
+        
+        isSyncing = true
+        defer { isSyncing = false }
+        
         Logger.store.addLog("Syncing with StoreKit...")
         updateListenerTask?.cancel()
         updateListenerTask = listenForTransactions()

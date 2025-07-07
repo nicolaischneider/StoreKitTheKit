@@ -7,9 +7,7 @@
 
 import SwiftUI
 import StoreKitTheKit
-#if canImport(UIKit)
 import UIKit
-#endif
 
 @MainActor
 class ContentViewModel: ObservableObject {
@@ -29,45 +27,12 @@ class ContentViewModel: ObservableObject {
     }
     
     private func setupObservers() {
-        // Observe store state changes
-        NotificationCenter.default.addObserver(
-            forName: .storeStateChanged,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.feedbackMessage = "Store state changed: \(StoreKitTheKit.shared.storeState)"
-            self?.showFeedback = true
-        }
-        
-        // Observe purchase data changes
-        NotificationCenter.default.addObserver(
-            forName: .purchaseDataChanged,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            if StoreKitTheKit.shared.purchaseDataChangedAfterGettingBackOnline {
-                self?.feedbackMessage = "Purchase data has been updated"
-                self?.showFeedback = true
-                self?.getSubscriptionInfo()
-            }
-        }
-        
-        #if canImport(UIKit)
-        // Observe app becoming active
-        NotificationCenter.default.addObserver(
-            forName: UIApplication.didBecomeActiveNotification,
-            object: nil,
-            queue: .main
-        ) { _ in
-            Task {
-                await StoreKitTheKit.shared.syncWithStore()
-            }
-        }
-        #endif
+        // These custom notifications don't exist in StoreKitTheKit and were causing issues
+        // We'll use the @Published properties directly in the view instead
     }
     
     deinit {
-        NotificationCenter.default.removeObserver(self)
+        // No observers to remove since we're using @Published properties
     }
     
     // MARK: - Store Initialization
@@ -234,11 +199,4 @@ class ContentViewModel: ObservableObject {
         // Also refresh detailed subscription info
         getSubscriptionInfo()
     }
-}
-
-// MARK: - Notification Extensions
-
-extension Notification.Name {
-    static let storeStateChanged = Notification.Name("storeStateChanged")
-    static let purchaseDataChanged = Notification.Name("purchaseDataChanged")
 }

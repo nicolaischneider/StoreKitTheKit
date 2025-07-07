@@ -161,6 +161,22 @@ struct ContentView: View {
                 await viewModel.initializeStore()
             }
         }
+        .onReceive(StoreKitTheKit.shared.$storeState) { state in
+            viewModel.feedbackMessage = "Store state changed: \(state)"
+            viewModel.showFeedback = true
+        }
+        .onReceive(StoreKitTheKit.shared.$purchaseDataChangedAfterGettingBackOnline) { changed in
+            if changed {
+                viewModel.feedbackMessage = "Purchase data has been updated"
+                viewModel.showFeedback = true
+                viewModel.getSubscriptionInfo()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            Task {
+                await StoreKitTheKit.shared.syncWithStore()
+            }
+        }
     }
 }
 
