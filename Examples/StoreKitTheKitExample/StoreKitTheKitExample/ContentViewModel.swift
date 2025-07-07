@@ -152,8 +152,9 @@ class ContentViewModel: ObservableObject {
     func getSubscriptionInfo() {
         var info = "Subscription Details:\n"
         
-        for subscription in [StoreItems.weeklySubscription, StoreItems.yearlySubscription] {
-            let name = subscription == StoreItems.weeklySubscription ? "Weekly" : "Yearly"
+        for subscription in [StoreItems.weeklySubscription, StoreItems.yearlySubscription, StoreItems.premiumPass] {
+            let name = subscription == StoreItems.weeklySubscription ? "Weekly" : 
+                      subscription == StoreItems.yearlySubscription ? "Yearly" : "Premium Pass"
             let subscriptionInfo = StoreKitTheKit.shared.getSubscriptionInfo(for: subscription)
             
             if let subInfo = subscriptionInfo {
@@ -184,9 +185,11 @@ class ContentViewModel: ObservableObject {
         // Subscriptions using elementWasPurchased (which checks validity)
         let weeklyValid = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.weeklySubscription)
         let yearlyValid = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.yearlySubscription)
+        let premiumPassValid = StoreKitTheKit.shared.elementWasPurchased(element: StoreItems.premiumPass)
         
         status += "Weekly Subscription: \(weeklyValid ? "✅ Active" : "❌ Inactive")\n"
-        status += "Yearly Subscription: \(yearlyValid ? "✅ Active" : "❌ Inactive")\n\n"
+        status += "Yearly Subscription: \(yearlyValid ? "✅ Active" : "❌ Inactive")\n"
+        status += "Premium Pass: \(premiumPassValid ? "✅ Active" : "❌ Inactive")\n\n"
         
         // Consumables (show current counts)
         status += "Consumables:\n"
@@ -198,5 +201,43 @@ class ContentViewModel: ObservableObject {
         
         // Also refresh detailed subscription info
         getSubscriptionInfo()
+    }
+    
+    // MARK: - Non-Renewable Subscription Functions
+    
+    func purchaseNonRenewableSubscription() async {
+        feedbackMessage = "Processing Premium Pass purchase..."
+        showFeedback = true
+        
+        let result = await StoreKitTheKit.shared.purchaseElement(element: StoreItems.premiumPass)
+        
+        switch result {
+        case .purchaseCompleted:
+            feedbackMessage = "✅ Successfully purchased Premium Pass - 30 Days!"
+            getSubscriptionInfo()
+        case .purchaseFailure(let withError):
+            feedbackMessage = "❌ Premium Pass purchase failed: \(withError)"
+        }
+    }
+    
+    func checkNonRenewableSubscriptionStatus() {
+        let isActive = StoreKitTheKit.shared.isSubscriptionActive(for: StoreItems.premiumPass)
+        let status = StoreKitTheKit.shared.getSubscriptionStatus(for: StoreItems.premiumPass)
+        
+        var message = "Premium Pass Status: \(isActive ? "✅ Active" : "❌ Inactive")\n"
+        message += "Detailed Status: \(status)"
+        
+        if let subscriptionInfo = StoreKitTheKit.shared.getSubscriptionInfo(for: StoreItems.premiumPass) {
+            message += "\nExpires: \(DateFormatter.localizedString(from: subscriptionInfo.expirationDate, dateStyle: .short, timeStyle: .short))"
+            
+            if let timeRemaining = StoreKitTheKit.shared.getSubscriptionTimeRemaining(for: StoreItems.premiumPass) {
+                let days = Int(timeRemaining / 86400)
+                let hours = Int((timeRemaining.truncatingRemainder(dividingBy: 86400)) / 3600)
+                message += "\nTime remaining: \(days)d \(hours)h"
+            }
+        }
+        
+        feedbackMessage = message
+        showFeedback = true
     }
 }

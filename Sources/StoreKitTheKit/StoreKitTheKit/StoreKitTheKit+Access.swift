@@ -35,7 +35,7 @@ extension StoreKitTheKit {
             switch element.type {
             case .nonConsumable:
                 return isNonConsumablePurchasedLocally(element: element)
-            case .autoRenewableSubscription:
+            case .autoRenewableSubscription, .nonRenewableSubscription:
                 return isSubscriptionActiveLocally(element: element)
             case .consumable:
                 return false // Consumables are never "owned"
@@ -55,8 +55,13 @@ extension StoreKitTheKit {
     
     private func isSubscriptionActiveLocally(element: Purchasable) -> Bool {
         if storeIsAvailable {
-            // Check if subscription is in current purchased products (active subscriptions)
-            return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
+            // For non-renewable subscriptions, we need to double-check expiration even if in purchasedProducts
+            if element.type == .nonRenewableSubscription {
+                return LocalStoreManager.shared.isSubscriptionActive(for: element.bundleId)
+            } else {
+                // For auto-renewable subscriptions, being in purchasedProducts means it's active
+                return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
+            }
         } else {
             // Fallback to local storage for subscription validation
             Logger.store.addLog("Checking subscription \(element.bundleId) from local storage due to store unavailability.")

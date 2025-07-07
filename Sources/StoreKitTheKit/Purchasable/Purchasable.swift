@@ -3,7 +3,17 @@ import Foundation
 public enum PurchasableType: Sendable {
     case nonConsumable
     case autoRenewableSubscription
+    case nonRenewableSubscription
     case consumable
+    
+    var isSubscription: Bool {
+        switch self {
+        case .autoRenewableSubscription, .nonRenewableSubscription:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 public struct Purchasable: Equatable, Hashable, Sendable {
@@ -37,7 +47,7 @@ public class PurchasableManager: @unchecked Sendable {
         return purchasableItems[id] != nil
     }
     
-    func produc(id: String) -> Purchasable? {
+    func product(id: String) -> Purchasable? {
         return purchasableItems[id]
     }
 }

@@ -91,7 +91,7 @@ extension StoreKitTheKit: SKPaymentTransactionObserver {
     }
     
     public func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
-        guard let purchasable = PurchasableManager.shared.produc(id: product.productIdentifier) else {
+        guard let purchasable = PurchasableManager.shared.product(id: product.productIdentifier) else {
             Logger.store.addLog("Product couldn't be identified")
             return false
         }

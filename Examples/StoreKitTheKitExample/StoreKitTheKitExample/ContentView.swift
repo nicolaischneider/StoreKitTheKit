@@ -79,6 +79,25 @@ struct ContentView: View {
                         
                         Divider()
                         
+                        // Non-Renewable Subscription Section
+                        VStack(spacing: 15) {
+                            Text("Non-Renewable Subscription Testing")
+                                .font(.headline)
+                                .foregroundColor(.orange)
+                            
+                            Button("Purchase Premium Pass - 30 Days ($2.99)") {
+                                Task { await viewModel.purchaseNonRenewableSubscription() }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            
+                            Button("Check Premium Pass Status") {
+                                viewModel.checkNonRenewableSubscriptionStatus()
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        
+                        Divider()
+                        
                         // Consumable Section
                         VStack(spacing: 15) {
                             Text("Consumable Testing")

@@ -11,7 +11,21 @@
   },
   "identifier" : "CBAED9B1",
   "nonRenewingSubscriptions" : [
-
+    {
+      "displayPrice" : "5.99",
+      "familyShareable" : false,
+      "internalID" : "F535CDA7",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.nicolaischneider.premiumpass.thirty",
+      "referenceName" : "premium pass",
+      "type" : "NonRenewingSubscription"
+    }
   ],
   "products" : [
     {
@@ -120,7 +134,7 @@
         "name" : "Offer Code Redeem Sheet"
       }
     ],
-    "_timeRate" : 1004
+    "_timeRate" : 1002
   },
   "subscriptionGroups" : [
     {

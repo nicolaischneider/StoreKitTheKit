@@ -15,7 +15,7 @@ extension StoreKitTheKit {
      - Returns: Boolean indicating if the subscription is active
      */
     public func isSubscriptionActive(for element: Purchasable) -> Bool {
-        guard element.type == .autoRenewableSubscription else {
+        guard element.type.isSubscription else {
             Logger.store.addLog("Element \(element.bundleId) is not a subscription", level: .error)
             return false
         }
@@ -29,7 +29,7 @@ extension StoreKitTheKit {
      - Returns: SubscriptionStatus indicating the current state of the subscription
      */
     public func getSubscriptionStatus(for element: Purchasable) -> SubscriptionStatus {
-        guard element.type == .autoRenewableSubscription else {
+        guard element.type.isSubscription else {
             Logger.store.addLog("Element \(element.bundleId) is not a subscription", level: .error)
             return .unknown
         }
@@ -52,7 +52,7 @@ extension StoreKitTheKit {
      - Returns: SubscriptionInfo if available, nil otherwise
      */
     public func getSubscriptionInfo(for element: Purchasable) -> SubscriptionInfo? {
-        guard element.type == .autoRenewableSubscription else {
+        guard element.type.isSubscription else {
             Logger.store.addLog("Element \(element.bundleId) is not a subscription", level: .error)
             return nil
         }
