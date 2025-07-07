@@ -56,14 +56,20 @@ PurchasableManager.shared.register(purchasableItems: [
 await StoreKitTheKit.shared.begin()
 ```
 
+### 3. Keep purchases in sync
+```swift
+// Call regularly, especially when app returns to foreground
+await StoreKitTheKit.shared.syncWithStore()
+```
+
 ## Purchase
 
-### 3. Make purchases
+### 4. Make purchases
 ```swift
 let result = await StoreKitTheKit.shared.purchaseElement(element: premiumItem)
 ```
 
-### 4. Check purchase status
+### 5. Check purchase status
 ```swift
 // For non-consumables and subscriptions
 let isPremium = StoreKitTheKit.shared.elementWasPurchased(element: premiumItem)
@@ -72,7 +78,7 @@ let isPremium = StoreKitTheKit.shared.elementWasPurchased(element: premiumItem)
 let wasConsumed = StoreKitTheKit.shared.elementWasPurchased(element: consumableItem)
 ```
 
-### 5. Restore purchases
+### 6. Restore purchases
 ```swift
 await StoreKitTheKit.shared.restorePurchases()
 ```
