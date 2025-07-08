@@ -41,9 +41,9 @@ Then run `pod install` and open your `.xcworkspace`.
 
 ## Setup
 
-### 1. Register your items
+### 1. Initialize the store with your items
 ```swift
-PurchasableManager.shared.register(purchasableItems: [
+await StoreKitTheKit.shared.start(iapItems: [
     Purchasable(bundleId: "com.example.premium", type: .nonConsumable),
     Purchasable(bundleId: "com.example.subscription", type: .autoRenewableSubscription),
     Purchasable(bundleId: "com.example.coins", type: .consumable),
@@ -51,25 +51,24 @@ PurchasableManager.shared.register(purchasableItems: [
 ])
 ```
 
-### 2. Initialize the store
+### 2. Keep purchases in sync
+Call `StoreKitTheKit.shared.syncWithStore()` regularly, e.g,. when app returns to foreground. In SwiftUI, you can automatically sync when the app becomes active:
 ```swift
-await StoreKitTheKit.shared.begin()
-```
-
-### 3. Keep purchases in sync
-```swift
-// Call regularly, especially when app returns to foreground
-await StoreKitTheKit.shared.syncWithStore()
+.onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+    Task {
+        await StoreKitTheKit.shared.syncWithStore()
+    }
+}
 ```
 
 ## Purchase
 
-### 4. Make purchases
+### 3. Make purchases
 ```swift
 let result = await StoreKitTheKit.shared.purchaseElement(element: premiumItem)
 ```
 
-### 5. Check purchase status
+### 4. Check purchase status
 ```swift
 // For non-consumables and subscriptions
 let isPremium = StoreKitTheKit.shared.elementWasPurchased(element: premiumItem)
@@ -78,7 +77,7 @@ let isPremium = StoreKitTheKit.shared.elementWasPurchased(element: premiumItem)
 let wasConsumed = StoreKitTheKit.shared.elementWasPurchased(element: consumableItem)
 ```
 
-### 6. Restore purchases
+### 5. Restore purchases
 ```swift
 await StoreKitTheKit.shared.restorePurchases()
 ```
