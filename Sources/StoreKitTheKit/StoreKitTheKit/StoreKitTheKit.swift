@@ -6,11 +6,16 @@ import Network
 public class StoreKitTheKit: NSObject, @unchecked Sendable {
     
     public static let shared = StoreKitTheKit()
+
+    // MARK: - Properties
+    let purchasableManager = PurchasableManager()
     
     // products
     var products = [Product]()
     var purchasedProducts = [Product]()
     var updateListenerTask: Task<Void, Error>? = nil
+    
+    private var kitHasBeenStarted = false
     private var isSyncing = false
     
     // Add network monitor
@@ -30,7 +35,7 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
         return storeState == .available && !products.isEmpty
     }
         
-    override init () {
+    override init() {
         super.init()
         setupNetworkMonitoring()
     }
@@ -65,16 +70,26 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     
     // MARK: - initialize Store and load products
     
-    public func begin () async {
+    /// Initialize the StoreKit, register the purchasable items, and start listening for transactions.
+    /// - Parameter iapItems: A list of purchasable items to register within the app..
+    public func start(iapItems: [Purchasable]) async {
+        Logger.store.addLog("Starting StoreKitTheKit with items: \(iapItems.map { $0.bundleId })")
         await MainActor.run {
             self.storeState = .checking
         }
+        
+        await purchasableManager.register(purchasableItems: iapItems)
         SKPaymentQueue.default().add(self)
+        kitHasBeenStarted = true
         await syncWithStore()
     }
     
-    public func syncWithStore () async {
+    public func syncWithStore() async {
         // Prevent concurrent sync operations
+        if !kitHasBeenStarted {
+            Logger.store.addLog("StoreKitTheKit has not been started yet. Please call start(iapItems:) first.")
+            return
+        }
         if isSyncing {
             Logger.store.addLog("Sync already in progress, skipping...")
             return

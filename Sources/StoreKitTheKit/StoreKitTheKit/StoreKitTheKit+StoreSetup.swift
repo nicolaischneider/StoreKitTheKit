@@ -9,7 +9,7 @@ extension StoreKitTheKit {
     // request products
     @MainActor
     func requestProducts() async {
-        let productIDs = Set(PurchasableManager.shared.allCases.map(\.bundleId))
+        let productIDs = Set(purchasableManager.allCases.map(\.bundleId))
         do {
             self.products = try await Product.products(for: productIDs)
             storeState = !products.isEmpty ? .available : .unavailable
@@ -154,7 +154,7 @@ extension StoreKitTheKit {
         if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
             purchased.append(purchasedItem)
         }
-        if PurchasableManager.shared.productIDExists(transaction.productID) {
+        if purchasableManager.productIDExists(transaction.productID) {
             purchasedItemsIds.append(transaction.productID)
         }
         return true
@@ -167,7 +167,7 @@ extension StoreKitTheKit {
         activeSubscriptions: inout [String: SubscriptionInfo]
     ) -> Bool {
         // Check if the product ID exists in PurchasableManager
-        guard PurchasableManager.shared.productIDExists(transaction.productID) else {
+        guard purchasableManager.productIDExists(transaction.productID) else {
             Logger.store.addLog("Product \(transaction.productID) not found in PurchasableManager")
             return false
         }
@@ -198,7 +198,7 @@ extension StoreKitTheKit {
         activeSubscriptions: inout [String: SubscriptionInfo]
     ) -> Bool {
         // Check if the product ID exists in PurchasableManager
-        guard PurchasableManager.shared.productIDExists(transaction.productID) else {
+        guard purchasableManager.productIDExists(transaction.productID) else {
             Logger.store.addLog("Product \(transaction.productID) not found in PurchasableManager")
             return false
         }
@@ -245,7 +245,7 @@ extension StoreKitTheKit {
     private func processConsumableTransaction(_ transaction: Transaction) -> Bool {
         // Consumables are processed but not tracked in purchased products
         // Apps handle their own consumption logic after successful purchase
-        if PurchasableManager.shared.productIDExists(transaction.productID) {
+        if purchasableManager.productIDExists(transaction.productID) {
             Logger.store.addLog("Consumable purchase processed: \(transaction.productID)")
         }
         return true

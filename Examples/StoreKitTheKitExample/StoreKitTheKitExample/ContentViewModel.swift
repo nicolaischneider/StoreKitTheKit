@@ -39,14 +39,10 @@ class ContentViewModel: ObservableObject {
         // We'll use the @Published properties directly in the view instead
     }
     
-    deinit {
-        // No observers to remove since we're using @Published properties
-    }
-    
     // MARK: - Store Initialization
     
     func initializeStore() async {
-        await StoreKitTheKit.shared.begin()
+        await StoreKitTheKit.shared.start(iapItems: StoreItems.allItems)
         updatePrices()
         isLoading = false
     }

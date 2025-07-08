@@ -13,9 +13,6 @@ struct UltimateSwiftKitTesterApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .onAppear {
-                    PurchasableManager.shared.register(purchasableItems: StoreItems.allItems)
-                }
         }
     }
 }

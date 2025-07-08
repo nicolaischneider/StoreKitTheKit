@@ -27,27 +27,38 @@ public struct Purchasable: Equatable, Hashable, Sendable {
     public let type: PurchasableType
 }
 
-public class PurchasableManager: @unchecked Sendable {
-    
-    public static let shared = PurchasableManager()
-    
+class PurchasableManager: @unchecked Sendable {
+        
     private var purchasableItems: [String: Purchasable] = [:]
-    
-    var allCases: [Purchasable] {
-        return purchasableItems.map { $0.value }
+    private let lock = NSLock()
+        
+    func register(purchasableItems: [Purchasable]) async {
+        // Use Task to ensure we're on a background thread if needed
+        await Task {
+            lock.withLock {
+                for item in purchasableItems {
+                    self.purchasableItems[item.bundleId] = item
+                }
+            }
+        }.value
     }
-    
-    public func register(purchasableItems: [Purchasable]) {
-        for item in purchasableItems {
-            self.purchasableItems[item.bundleId] = item
+
+    var allCases: [Purchasable] {
+        lock.withLock {
+            return Array(purchasableItems.values)
         }
     }
     
-    public func productIDExists(_ id: String) -> Bool {
-        return purchasableItems[id] != nil
+    // Synchronous read methods
+    func productIDExists(_ id: String) -> Bool {
+        lock.withLock {
+            return purchasableItems[id] != nil
+        }
     }
     
     func product(id: String) -> Purchasable? {
-        return purchasableItems[id]
+        lock.withLock {
+            return purchasableItems[id]
+        }
     }
 }
