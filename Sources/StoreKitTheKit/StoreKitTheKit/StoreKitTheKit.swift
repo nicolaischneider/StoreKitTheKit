@@ -10,12 +10,13 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     // MARK: - Properties
     let purchasableManager = PurchasableManager()
     
-    // products
+    // Products
     var products = [Product]()
     var purchasedProducts = [Product]()
     var updateListenerTask: Task<Void, Error>? = nil
     
-    private var kitHasBeenStarted = false
+    // Loading indicators
+    private var storeKitTheKitHasBeenStarted = false
     private var isSyncing = false
     
     // Add network monitor
@@ -80,13 +81,13 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
         
         await purchasableManager.register(purchasableItems: iapItems)
         SKPaymentQueue.default().add(self)
-        kitHasBeenStarted = true
+        storeKitTheKitHasBeenStarted = true
         await syncWithStore()
     }
     
     public func syncWithStore() async {
         // Prevent concurrent sync operations
-        if !kitHasBeenStarted {
+        if !storeKitTheKitHasBeenStarted {
             Logger.store.addLog("StoreKitTheKit has not been started yet. Please call start(iapItems:) first.")
             return
         }
