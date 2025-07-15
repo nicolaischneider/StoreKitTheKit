@@ -179,7 +179,31 @@ let totalPrice = StoreKitTheKit.shared.getPriceFormatted(for: [item1, item2])
 let (savings, percentage) = StoreKitTheKit.shared.comparePrice(
     for: [item1, item2], with: item3
 )
+
+// Divide price by a number (useful for calculating weekly/daily costs)
+let weeklyPrice = StoreKitTheKit.shared.getDividedPrice(for: yearlySubscription, dividedBy: 52)
 ```
+
+### Subscription Price Comparisons
+
+Compare subscription savings between different periods:
+
+```swift
+// Create subscription items with their periods
+let weeklySubscription = SubscriptionItem(purchasable: weeklyPurchasable, period: .weekly)
+let yearlySubscription = SubscriptionItem(purchasable: yearlyPurchasable, period: .yearly)
+
+// Get savings percentage when choosing the cheaper option
+let savings = StoreKitTheKit.shared.compareSubscriptionSavings(
+    subscription1: weeklySubscription, 
+    subscription2: yearlySubscription
+) // Returns "65%" if yearly is 65% cheaper per week
+```
+
+Available subscription periods:
+- `.weekly` (1 week)
+- `.monthly` (4 weeks)
+- `.yearly` (52 weeks)
 
 ## Example
 
