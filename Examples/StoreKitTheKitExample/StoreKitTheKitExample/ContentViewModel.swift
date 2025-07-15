@@ -30,6 +30,11 @@ class ContentViewModel: ObservableObject {
     @Published var hundredCoinsPrice = "Loading..."
     @Published var tenEnergyPrice = "Loading..."
     
+    // Test new functions
+    @Published var weeklyDividedPrice = "Loading..."
+    @Published var yearlyDividedPrice = "Loading..."
+    @Published var subscriptionSavings = "Loading..."
+    
     init() {
         setupObservers()
     }
@@ -56,6 +61,14 @@ class ContentViewModel: ObservableObject {
         premiumPassPrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.premiumPass) ?? "N/A"
         hundredCoinsPrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.hundredCoins) ?? "N/A"
         tenEnergyPrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.tenEnergy) ?? "N/A"
+        
+        // Test new functions
+        weeklyDividedPrice = StoreKitTheKit.shared.getDividedPrice(for: StoreItems.weeklySubscription, dividedBy: SubscriptionPeriod.weekly.weeksPerPeriod) ?? "N/A"
+        yearlyDividedPrice = StoreKitTheKit.shared.getDividedPrice(for: StoreItems.yearlySubscription, dividedBy: SubscriptionPeriod.yearly.weeksPerPeriod) ?? "N/A"
+
+        let weeklySubscriptionItem = SubscriptionItem(purchasable: StoreItems.weeklySubscription, period: .weekly)
+        let yearlySubscriptionItem = SubscriptionItem(purchasable: StoreItems.yearlySubscription, period: .yearly)
+        subscriptionSavings = StoreKitTheKit.shared.compareSubscriptionSavings(subscription1: weeklySubscriptionItem, subscription2: yearlySubscriptionItem) ?? "N/A"
     }
     
     // MARK: - Non-Consumable Functions

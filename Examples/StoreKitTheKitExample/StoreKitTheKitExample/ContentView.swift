@@ -50,6 +50,26 @@ struct ContentView: View {
                                 .font(.headline)
                                 .foregroundColor(.green)
                             
+                            // Test new functions
+                            VStack(spacing: 10) {
+                                Text("Weekly subscription divided by \(SubscriptionPeriod.weekly.weeksPerPeriod): \(viewModel.weeklyDividedPrice)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                Text("Yearly subscription divided by \(SubscriptionPeriod.yearly.weeksPerPeriod): \(viewModel.yearlyDividedPrice)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                Text("Subscription savings: \(viewModel.subscriptionSavings)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color(.systemGray6))
+                            )
+                            
                             // Subscription Picker
                             Picker("Select Subscription", selection: $viewModel.selectedSubscription) {
                                 Text("Weekly (\(viewModel.weeklySubscriptionPrice))").tag(StoreItems.weeklySubscription)
