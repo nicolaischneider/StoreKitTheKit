@@ -63,8 +63,8 @@ class ContentViewModel: ObservableObject {
         tenEnergyPrice = StoreKitTheKit.shared.getPriceFormatted(for: StoreItems.tenEnergy) ?? "N/A"
         
         // Test new functions
-        weeklyDividedPrice = StoreKitTheKit.shared.getDividedPrice(for: StoreItems.weeklySubscription, dividedBy: SubscriptionPeriod.weekly.weeksPerPeriod) ?? "N/A"
-        yearlyDividedPrice = StoreKitTheKit.shared.getDividedPrice(for: StoreItems.yearlySubscription, dividedBy: SubscriptionPeriod.yearly.weeksPerPeriod) ?? "N/A"
+        weeklyDividedPrice = StoreKitTheKit.shared.getDividedPrice(for: StoreItems.weeklySubscription, dividedBy: SubscriptionPeriodLength.weekly.weeksPerPeriod) ?? "N/A"
+        yearlyDividedPrice = StoreKitTheKit.shared.getDividedPrice(for: StoreItems.yearlySubscription, dividedBy: SubscriptionPeriodLength.yearly.weeksPerPeriod) ?? "N/A"
 
         let weeklySubscriptionItem = SubscriptionItem(purchasable: StoreItems.weeklySubscription, period: .weekly)
         let yearlySubscriptionItem = SubscriptionItem(purchasable: StoreItems.yearlySubscription, period: .yearly)

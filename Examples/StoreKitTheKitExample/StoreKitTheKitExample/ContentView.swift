@@ -52,11 +52,11 @@ struct ContentView: View {
                             
                             // Test new functions
                             VStack(spacing: 10) {
-                                Text("Weekly subscription divided by \(SubscriptionPeriod.weekly.weeksPerPeriod): \(viewModel.weeklyDividedPrice)")
+                                Text("Weekly subscription divided by \(SubscriptionPeriodLength.weekly.weeksPerPeriod): \(viewModel.weeklyDividedPrice)")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 
-                                Text("Yearly subscription divided by \(SubscriptionPeriod.yearly.weeksPerPeriod): \(viewModel.yearlyDividedPrice)")
+                                Text("Yearly subscription divided by \(SubscriptionPeriodLength.yearly.weeksPerPeriod): \(viewModel.yearlyDividedPrice)")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 

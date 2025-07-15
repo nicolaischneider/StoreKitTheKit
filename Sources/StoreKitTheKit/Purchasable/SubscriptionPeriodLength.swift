@@ -1,6 +1,6 @@
 import Foundation
 
-public enum SubscriptionPeriod {
+public enum SubscriptionPeriodLength {
     case weekly
     case monthly
     case yearly
@@ -16,9 +16,9 @@ public enum SubscriptionPeriod {
 
 public struct SubscriptionItem {
     let purchasable: Purchasable
-    let period: SubscriptionPeriod
+    let period: SubscriptionPeriodLength
     
-    public init(purchasable: Purchasable, period: SubscriptionPeriod) {
+    public init(purchasable: Purchasable, period: SubscriptionPeriodLength) {
         self.purchasable = purchasable
         self.period = period
     }
