@@ -28,7 +28,7 @@ extension StoreKitTheKit {
         
         // check whether purchase has been made / subscription is active
         if storeIsAvailable {
-            return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
+            return state.isPurchased(productId: element.bundleId)
             
         // Fallback to keychain
         } else {
@@ -60,7 +60,7 @@ extension StoreKitTheKit {
                 return LocalStoreManager.shared.isSubscriptionActive(for: element.bundleId)
             } else {
                 // For auto-renewable subscriptions, being in purchasedProducts means it's active
-                return self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil
+                return state.isPurchased(productId: element.bundleId)
             }
         } else {
             // Fallback to local storage for subscription validation

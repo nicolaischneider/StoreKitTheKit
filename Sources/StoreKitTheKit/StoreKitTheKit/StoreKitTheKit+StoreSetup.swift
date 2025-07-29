@@ -11,8 +11,9 @@ extension StoreKitTheKit {
     func requestProducts() async {
         let productIDs = Set(purchasableManager.allCases.map(\.bundleId))
         do {
-            self.products = try await Product.products(for: productIDs)
-            storeState = !products.isEmpty ? .available : .unavailable
+            let newProducts = try await Product.products(for: productIDs)
+            state.updateProducts(newProducts)
+            storeState = !state.isEmpty() ? .available : .unavailable
         } catch {
             Logger.store.addLog("Failed to load products: \(error)")
             storeState = .unavailable
@@ -80,7 +81,7 @@ extension StoreKitTheKit {
             }
         }
         
-        self.purchasedProducts = purchased
+        state.updatePurchasedProducts(purchased)
         
         if !purchasedProductsMatchLocallyStored(productIds: purchasedItemsIds) {
             LocalStoreManager.shared.storePurchasedProductIds(purchasedItemsIds)
@@ -97,7 +98,7 @@ extension StoreKitTheKit {
             purchaseDataChangedAfterGettingBackOnline = true
         }
         
-        storeState = !products.isEmpty ? .available : .unavailable
+        storeState = !state.isEmpty() ? .available : .unavailable
     }
     
     func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
@@ -151,7 +152,7 @@ extension StoreKitTheKit {
         purchased: inout [Product],
         purchasedItemsIds: inout [String]
     ) -> Bool {
-        if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
+        if let purchasedItem = state.getProduct(withId: transaction.productID) {
             purchased.append(purchasedItem)
         }
         if purchasableManager.productIDExists(transaction.productID) {
@@ -184,7 +185,7 @@ extension StoreKitTheKit {
         activeSubscriptions[transaction.productID] = subscriptionInfo
         
         // Add to purchased items if subscription is active
-        if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
+        if let purchasedItem = state.getProduct(withId: transaction.productID) {
             purchased.append(purchasedItem)
         }
         purchasedItemsIds.append(transaction.productID)
@@ -234,7 +235,7 @@ extension StoreKitTheKit {
         
         // Only add to purchased items if non-renewable subscription is still active
         if isStillActive {
-            if let purchasedItem = products.first(where: { $0.id == transaction.productID }) {
+            if let purchasedItem = state.getProduct(withId: transaction.productID) {
                 purchased.append(purchasedItem)
             }
             purchasedItemsIds.append(transaction.productID)

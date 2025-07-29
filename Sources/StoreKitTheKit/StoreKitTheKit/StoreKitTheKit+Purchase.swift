@@ -37,7 +37,7 @@ extension StoreKitTheKit {
     
     func purchase(_ element: Purchasable) async -> PurchaseState {
         
-        guard let product = self.products.first(where: { $0.id == element.bundleId }) else {
+        guard let product = state.getProduct(withId: element.bundleId) else {
             Logger.store.addLog("Purchasable item couldn't be found.")
             return .purchaseFailure(.productNotFound)
         }

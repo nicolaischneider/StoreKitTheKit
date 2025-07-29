@@ -148,11 +148,6 @@ extension StoreKitTheKit {
     
     /// Retrieves a purchasable product by its identifier.
     private func getPurchasableProduct (id: String) -> Product? {
-        for product in self.products {
-            if product.id == id {
-                return product
-            }
-        }
-        return nil
+        return state.getProduct(withId: id)
     }
 }

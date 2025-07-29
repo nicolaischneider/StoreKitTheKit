@@ -10,14 +10,11 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     // MARK: - Properties
     let purchasableManager = PurchasableManager()
     
-    // Products
-    var products = [Product]()
-    var purchasedProducts = [Product]()
-    var updateListenerTask: Task<Void, Error>? = nil
+    // Thread-safe state management
+    let state = StoreKitTheKitState()
     
     // Loading indicators
     private var storeKitTheKitHasBeenStarted = false
-    private var isSyncing = false
     
     // Add network monitor
     private let networkMonitor = NWPathMonitor()
@@ -32,8 +29,25 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     
     @Published public var purchaseDataChangedAfterGettingBackOnline = false
     
+    // MARK: - Thread-Safe Property Access
+    
+    /// Thread-safe access to products array
+    var products: [Product] {
+        state.products
+    }
+    
+    /// Thread-safe access to purchased products array
+    var purchasedProducts: [Product] {
+        state.purchasedProducts
+    }
+    
+    /// Thread-safe access to syncing state
+    var isSyncing: Bool {
+        state.isSyncing
+    }
+    
     var storeIsAvailable: Bool {
-        return storeState == .available && !products.isEmpty
+        return storeState == .available && !state.isEmpty()
     }
         
     override init() {
@@ -42,7 +56,7 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     }
     
     deinit {
-        updateListenerTask?.cancel()
+        state.cancelListenerTask()
         networkMonitor.cancel()
     }
     
@@ -91,17 +105,17 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
             Logger.store.addLog("StoreKitTheKit has not been started yet. Please call start(iapItems:) first.")
             return
         }
-        if isSyncing {
+        if state.isSyncing {
             Logger.store.addLog("Sync already in progress, skipping...")
             return
         }
         
-        isSyncing = true
-        defer { isSyncing = false }
+        state.setIsSyncing(true)
+        defer { state.setIsSyncing(false) }
         
         Logger.store.addLog("Syncing with StoreKit...")
-        updateListenerTask?.cancel()
-        updateListenerTask = listenForTransactions()
+        let newListenerTask = listenForTransactions()
+        state.updateListenerTask(newListenerTask)
         await requestProducts()
         await updateCustomerProductStatus()
     }

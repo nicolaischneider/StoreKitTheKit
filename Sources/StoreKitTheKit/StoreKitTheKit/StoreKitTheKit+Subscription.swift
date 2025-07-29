@@ -108,7 +108,7 @@ extension StoreKitTheKit {
         }
         
         // Check if the subscription is currently active (in purchasedProducts)
-        guard self.purchasedProducts.first(where: { $0.id == element.bundleId }) != nil else {
+        guard state.isPurchased(productId: element.bundleId) else {
             Logger.store.addLog("Subscription \(element.bundleId) is not currently active", level: .error)
             throw StoreError.subscriptionNotFound
         }
@@ -123,7 +123,7 @@ extension StoreKitTheKit {
     
     private func getSubscriptionStatusFromStore(productID: String) -> SubscriptionStatus {
         // Check if subscription is in current purchased products
-        if purchasedProducts.contains(where: { $0.id == productID }) {
+        if state.isPurchased(productId: productID) {
             return .active
         }
         
