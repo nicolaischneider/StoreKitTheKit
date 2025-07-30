@@ -45,6 +45,14 @@ extension StoreKitTheKit {
     // Determine customer product state
     @MainActor
     func updateCustomerProductStatus() async {
+        // Prevent concurrent executions of this method
+        if state.isUpdatingCustomerStatus {
+            Logger.store.addLog("Customer product status update already in progress, skipping...")
+            return
+        }
+        
+        state.setIsUpdatingCustomerStatus(true)
+        defer { state.setIsUpdatingCustomerStatus(false) }
         
         updatePurchaseDataChanged(false)
         

@@ -25,6 +25,9 @@ final class StoreKitTheKitState: @unchecked Sendable {
     /// Internal storage for sync state - access via thread-safe properties
     var _isSyncing = false
     
+    /// Internal storage for customer status update state - prevents concurrent executions
+    var _isUpdatingCustomerStatus = false
+    
     // MARK: - Thread-Safe Public Interface
     
     /// Thread-safe access to products array
@@ -40,6 +43,11 @@ final class StoreKitTheKitState: @unchecked Sendable {
     /// Thread-safe access to sync state
     var isSyncing: Bool {
         queue.sync { _isSyncing }
+    }
+    
+    /// Thread-safe access to customer status update state
+    var isUpdatingCustomerStatus: Bool {
+        queue.sync { _isUpdatingCustomerStatus }
     }
     
     // MARK: - Safe Mutation Methods
@@ -65,6 +73,14 @@ final class StoreKitTheKitState: @unchecked Sendable {
     func setIsSyncing(_ syncing: Bool) {
         queue.async {
             self._isSyncing = syncing
+        }
+    }
+    
+    /// Thread-safely set the customer status updating state
+    /// - Parameter updating: New customer status updating state
+    func setIsUpdatingCustomerStatus(_ updating: Bool) {
+        queue.async {
+            self._isUpdatingCustomerStatus = updating
         }
     }
     
