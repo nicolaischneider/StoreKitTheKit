@@ -8,26 +8,33 @@ class LocalStoreManager: @unchecked Sendable {
     
     static let shared = LocalStoreManager()
     
+    // Thread-safe keychain access using serial queue
+    private let keychainQueue = DispatchQueue(label: "com.storekitthekit.keychain", qos: .userInitiated)
+    
     private let purchasesKey = "com.nicolaischneider.100questions.purchases"
     private let subscriptionsKey = "com.nicolaischneider.100questions.subscriptions"
     
     func storePurchasedProductIds(_ productIds: [String]) {
-        do {
-            let data = try JSONEncoder().encode(productIds)
-            saveToKeychain(data)
-        } catch {
-            Logger.store.addLog("Failed to encode purchases for keychain: \(error)", level: .error)
+        keychainQueue.sync {
+            do {
+                let data = try JSONEncoder().encode(productIds)
+                saveToKeychain(data)
+            } catch {
+                Logger.store.addLog("Failed to encode purchases for keychain: \(error)", level: .error)
+            }
         }
     }
     
     func getPurchasedProductIds() -> [String] {
-        guard let data = loadFromKeychain() else { return [] }
-        
-        do {
-            return try JSONDecoder().decode([String].self, from: data)
-        } catch {
-            Logger.store.addLog("Failed to decode purchases from keychain: \(error)", level: .error)
-            return []
+        return keychainQueue.sync {
+            guard let data = loadFromKeychain() else { return [] }
+            
+            do {
+                return try JSONDecoder().decode([String].self, from: data)
+            } catch {
+                Logger.store.addLog("Failed to decode purchases from keychain: \(error)", level: .error)
+                return []
+            }
         }
     }
     
@@ -42,24 +49,28 @@ class LocalStoreManager: @unchecked Sendable {
     // MARK: - Subscription Storage
     
     func storeSubscriptionData(_ subscriptionData: StoredSubscriptionData) {
-        do {
-            let data = try JSONEncoder().encode(subscriptionData)
-            saveToKeychain(data, key: subscriptionsKey)
-        } catch {
-            Logger.store.addLog("Failed to encode subscription data for keychain: \(error)", level: .error)
+        keychainQueue.sync {
+            do {
+                let data = try JSONEncoder().encode(subscriptionData)
+                saveToKeychain(data, key: subscriptionsKey)
+            } catch {
+                Logger.store.addLog("Failed to encode subscription data for keychain: \(error)", level: .error)
+            }
         }
     }
     
     func getSubscriptionData() -> StoredSubscriptionData {
-        guard let data = loadFromKeychain(key: subscriptionsKey) else { 
-            return StoredSubscriptionData()
-        }
-        
-        do {
-            return try JSONDecoder().decode(StoredSubscriptionData.self, from: data)
-        } catch {
-            Logger.store.addLog("Failed to decode subscription data from keychain: \(error)", level: .error)
-            return StoredSubscriptionData()
+        return keychainQueue.sync {
+            guard let data = loadFromKeychain(key: subscriptionsKey) else { 
+                return StoredSubscriptionData()
+            }
+            
+            do {
+                return try JSONDecoder().decode(StoredSubscriptionData.self, from: data)
+            } catch {
+                Logger.store.addLog("Failed to decode subscription data from keychain: \(error)", level: .error)
+                return StoredSubscriptionData()
+            }
         }
     }
     
