@@ -49,6 +49,24 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     var storeIsAvailable: Bool {
         return storeState == .available && !state.isEmpty()
     }
+    
+    // MARK: - Thread-Safe @Published Property Updates
+    
+    /// Thread-safe method to update storeState on main thread
+    /// Ensures @Published property updates happen on the correct thread for SwiftUI
+    func updateStoreState(_ newState: StoreAvailabilityState) {
+        DispatchQueue.main.async {
+            self.storeState = newState
+        }
+    }
+    
+    /// Thread-safe method to update purchaseDataChangedAfterGettingBackOnline on main thread
+    /// Ensures @Published property updates happen on the correct thread for SwiftUI
+    func updatePurchaseDataChanged(_ changed: Bool) {
+        DispatchQueue.main.async {
+            self.purchaseDataChangedAfterGettingBackOnline = changed
+        }
+    }
         
     override init() {
         super.init()
@@ -77,9 +95,7 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     }
     
     private func retryStoreConnection() async {
-        await MainActor.run {
-            self.storeState = .checking
-        }
+        updateStoreState(.checking)
         await syncWithStore()
     }
     
@@ -89,9 +105,7 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     /// - Parameter iapItems: A list of purchasable items to register within the app..
     public func start(iapItems: [Purchasable]) async {
         Logger.store.addLog("Starting StoreKitTheKit with items: \(iapItems.map { $0.bundleId })")
-        await MainActor.run {
-            self.storeState = .checking
-        }
+        updateStoreState(.checking)
         
         await purchasableManager.register(purchasableItems: iapItems)
         SKPaymentQueue.default().add(self)

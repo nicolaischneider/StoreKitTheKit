@@ -13,10 +13,10 @@ extension StoreKitTheKit {
         do {
             let newProducts = try await Product.products(for: productIDs)
             state.updateProducts(newProducts)
-            storeState = !state.isEmpty() ? .available : .unavailable
+            updateStoreState(!state.isEmpty() ? StoreAvailabilityState.available : StoreAvailabilityState.unavailable)
         } catch {
             Logger.store.addLog("Failed to load products: \(error)")
-            storeState = .unavailable
+            updateStoreState(StoreAvailabilityState.unavailable)
         }
     }
     
@@ -36,11 +36,7 @@ extension StoreKitTheKit {
                 } catch {
                     // StoreKit transaction failed verification, don't deliver content to user.
                     Logger.store.addLog("Transaction \(result) failed verification")
-                    Task {
-                        await MainActor.run {
-                            self.storeState = .unavailable
-                        }
-                    }
+                    self.updateStoreState(StoreAvailabilityState.unavailable)
                 }
             }
         }
@@ -50,7 +46,7 @@ extension StoreKitTheKit {
     @MainActor
     func updateCustomerProductStatus() async {
         
-        purchaseDataChangedAfterGettingBackOnline = false
+        updatePurchaseDataChanged(false)
         
         var purchased: [Product] = []
         var purchasedItemsIds: [String] = []
@@ -77,7 +73,7 @@ extension StoreKitTheKit {
                 }
             } catch {
                 Logger.store.addLog("Something went wrong while updating customer product status: \(error)", level: .error)
-                storeState = .unavailable
+                updateStoreState(StoreAvailabilityState.unavailable)
             }
         }
         
@@ -85,7 +81,7 @@ extension StoreKitTheKit {
         
         if !purchasedProductsMatchLocallyStored(productIds: purchasedItemsIds) {
             LocalStoreManager.shared.storePurchasedProductIds(purchasedItemsIds)
-            purchaseDataChangedAfterGettingBackOnline = true
+            updatePurchaseDataChanged(true)
         }
         
         // Store subscription data and notify of changes
@@ -95,10 +91,10 @@ extension StoreKitTheKit {
                 lastUpdated: Date()
             )
             LocalStoreManager.shared.storeSubscriptionData(subscriptionData)
-            purchaseDataChangedAfterGettingBackOnline = true
+            updatePurchaseDataChanged(true)
         }
         
-        storeState = !state.isEmpty() ? .available : .unavailable
+        updateStoreState(!state.isEmpty() ? StoreAvailabilityState.available : StoreAvailabilityState.unavailable)
     }
     
     func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
