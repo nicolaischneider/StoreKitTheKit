@@ -28,6 +28,9 @@ final class StoreKitTheKitState: @unchecked Sendable {
     /// Internal storage for customer status update state - prevents concurrent executions
     var _isUpdatingCustomerStatus = false
     
+    /// Internal storage for network availability state - prevents redundant network syncs
+    var _isNetworkAvailable = false
+    
     // MARK: - Thread-Safe Public Interface
     
     /// Thread-safe access to products array
@@ -48,6 +51,11 @@ final class StoreKitTheKitState: @unchecked Sendable {
     /// Thread-safe access to customer status update state
     var isUpdatingCustomerStatus: Bool {
         queue.sync { _isUpdatingCustomerStatus }
+    }
+    
+    /// Thread-safe access to network availability state
+    var isNetworkAvailable: Bool {
+        queue.sync { _isNetworkAvailable }
     }
     
     // MARK: - Safe Mutation Methods
@@ -81,6 +89,14 @@ final class StoreKitTheKitState: @unchecked Sendable {
     func setIsUpdatingCustomerStatus(_ updating: Bool) {
         queue.async {
             self._isUpdatingCustomerStatus = updating
+        }
+    }
+    
+    /// Thread-safely set the network availability state
+    /// - Parameter available: New network availability state
+    func setIsNetworkAvailable(_ available: Bool) {
+        queue.async {
+            self._isNetworkAvailable = available
         }
     }
     

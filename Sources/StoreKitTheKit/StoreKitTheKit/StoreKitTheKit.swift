@@ -54,9 +54,12 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     
     /// Thread-safe method to update storeState on main thread
     /// Ensures @Published property updates happen on the correct thread for SwiftUI
+    /// Only updates if the state actually changed to prevent unnecessary logging and SwiftUI updates
     func updateStoreState(_ newState: StoreAvailabilityState) {
         DispatchQueue.main.async {
-            self.storeState = newState
+            if self.storeState != newState {
+                self.storeState = newState
+            }
         }
     }
     
@@ -82,14 +85,23 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
         networkMonitor.pathUpdateHandler = { [weak self] path in
             guard let self = self else { return }
             
-            if path.status == .satisfied {
+            let isAvailable = path.status == .satisfied
+            let wasAvailable = self.state.isNetworkAvailable
+            
+            // Update network state
+            self.state.setIsNetworkAvailable(isAvailable)
+            
+            if isAvailable && !wasAvailable {
+                // Network just became available - trigger sync
                 Logger.store.addLog("Network connection restored.")
                 Task {
                     await self.retryStoreConnection()
                 }
-            } else {
-                Logger.store.addLog("No network connection available.")
+            } else if !isAvailable && wasAvailable {
+                // Network just became unavailable
+                Logger.store.addLog("Network connection lost.")
             }
+            // If state didn't change, do nothing to prevent redundant syncs
         }
         networkMonitor.start(queue: monitorQueue)
     }
