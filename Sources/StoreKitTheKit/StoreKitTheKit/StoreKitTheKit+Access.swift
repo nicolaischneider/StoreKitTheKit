@@ -19,19 +19,33 @@ extension StoreKitTheKit {
      - Parameter element: The Purchasable item to check for purchase status
      - Returns: Boolean value indicating whether the item has been purchased (always false for consumables)
      */
+    @MainActor
     public func elementWasPurchased(element: Purchasable) -> Bool {
+        Logger.store.addLog("elementWasPurchased called for: \(element.bundleId) on thread: \(Thread.current.isMainThread ? "main" : "background")")
+        
         // Consumables are not "owned" - they're purchased and consumed
         // Apps should handle their own consumption logic
         if element.type == .consumable {
+            Logger.store.addLog("elementWasPurchased - Consumable \(element.bundleId) - returning false")
             return false
         }
         
+        // Capture state values for logging
+        let currentStoreState = storeState
+        let storeEmpty = state.isEmpty()
+        let isStoreCurrentlyAvailable = currentStoreState == .available && !storeEmpty
+        
+        Logger.store.addLog("elementWasPurchased - Store check for \(element.bundleId): storeState=\(currentStoreState), isEmpty=\(storeEmpty), storeIsAvailable=\(isStoreCurrentlyAvailable)")
+        
         // check whether purchase has been made / subscription is active
-        if storeIsAvailable {
-            return state.isPurchased(productId: element.bundleId)
+        if isStoreCurrentlyAvailable {
+            let isPurchasedResult = state.isPurchased(productId: element.bundleId)
+            Logger.store.addLog("elementWasPurchased - Store available, \(element.bundleId) isPurchased: \(isPurchasedResult)")
+            return isPurchasedResult
             
         // Fallback to keychain
         } else {
+            Logger.store.addLog("elementWasPurchased - Store unavailable, checking locally for \(element.bundleId)")
             switch element.type {
             case .nonConsumable:
                 return isNonConsumablePurchasedLocally(element: element)
