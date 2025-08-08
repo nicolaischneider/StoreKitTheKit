@@ -38,7 +38,7 @@ extension StoreKitTheKit {
         // Consumables are not "owned" - they're purchased and consumed
         // Apps should handle their own consumption logic
         if element.type == .consumable {
-            Logger.store.addLog("elementWasPurchased - Consumable \(element.bundleId) - returning false")
+            Logger.store.addLog("Consumable \(element.bundleId) is never stored as purchase - returning false")
             return false
         }
         
@@ -46,18 +46,17 @@ extension StoreKitTheKit {
         let currentStoreState = storeState
         let storeEmpty = state.isEmpty()
         let isStoreCurrentlyAvailable = currentStoreState == .available && !storeEmpty
-        
-        Logger.store.addLog("elementWasPurchased - Store check for \(element.bundleId): storeState=\(currentStoreState), isEmpty=\(storeEmpty), storeIsAvailable=\(isStoreCurrentlyAvailable)")
+        Logger.store.addLog("Store check to validate purchase of \(element.bundleId): storeState=\(currentStoreState), isEmpty=\(storeEmpty), storeIsAvailable=\(isStoreCurrentlyAvailable)")
         
         // check whether purchase has been made / subscription is active
         if isStoreCurrentlyAvailable {
             let isPurchasedResult = state.isPurchased(productId: element.bundleId)
-            Logger.store.addLog("elementWasPurchased - Store available, \(element.bundleId) isPurchased: \(isPurchasedResult)")
+            Logger.store.addLog("Store available, \(element.bundleId) isPurchased: \(isPurchasedResult)")
             return isPurchasedResult
             
         // Fallback to keychain
         } else {
-            Logger.store.addLog("elementWasPurchased - Store unavailable, checking locally for \(element.bundleId)")
+            Logger.store.addLog("Store unavailable, checking locally for \(element.bundleId)")
             switch element.type {
             case .nonConsumable:
                 return isNonConsumablePurchasedLocally(element: element)
