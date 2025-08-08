@@ -19,10 +19,22 @@ extension StoreKitTheKit {
      - Parameter element: The Purchasable item to check for purchase status
      - Returns: Boolean value indicating whether the item has been purchased (always false for consumables)
      */
-    @MainActor
     public func elementWasPurchased(element: Purchasable) -> Bool {
         Logger.store.addLog("elementWasPurchased called for: \(element.bundleId) on thread: \(Thread.current.isMainThread ? "main" : "background")")
         
+        // Ensure thread safety by executing on main thread, avoiding deadlock
+        if Thread.isMainThread {
+            // Already on main thread, execute directly
+            return _elementWasPurchasedInternal(element: element)
+        } else {
+            // Switch to main thread for thread safety
+            return DispatchQueue.main.sync {
+                return _elementWasPurchasedInternal(element: element)
+            }
+        }
+    }
+    
+    private func _elementWasPurchasedInternal(element: Purchasable) -> Bool {
         // Consumables are not "owned" - they're purchased and consumed
         // Apps should handle their own consumption logic
         if element.type == .consumable {
