@@ -15,9 +15,10 @@ extension StoreKitTheKit {
      If the store connection is unavailable, it will try to reconnect before proceeding with the purchase.
      
      - Parameter element: The Purchasable item to be purchased
+     - Parameter options: Optional set of purchase options (e.g., appAccountToken)
      - Returns: A PurchaseState enum indicating the result of the purchase attempt
      */
-    public func purchaseElement(element: Purchasable) async -> PurchaseState {
+    public func purchaseElement(element: Purchasable, options: Set<Product.PurchaseOption>? = nil) async -> PurchaseState {
         
         Logger.store.addLog("Purchasing item \(element.bundleId)...")
         
@@ -27,7 +28,7 @@ extension StoreKitTheKit {
             await self.syncWithStore()
         }
         
-        return await purchase(element)
+        return await purchase(element, options: options)
     }
 }
 
@@ -35,7 +36,7 @@ extension StoreKitTheKit {
 
 extension StoreKitTheKit {
     
-    func purchase(_ element: Purchasable) async -> PurchaseState {
+    func purchase(_ element: Purchasable, options: Set<Product.PurchaseOption>? = nil) async -> PurchaseState {
         
         guard let product = state.getProduct(withId: element.bundleId) else {
             Logger.store.addLog("Purchasable item couldn't be found.")
@@ -43,7 +44,13 @@ extension StoreKitTheKit {
         }
                 
         do {
-            let result = try await product.purchase()
+            let result: Product.PurchaseResult
+            if let opts = options {
+                result = try await product.purchase(options: opts)
+            } else {
+                result = try await product.purchase()
+            }
+            
             switch result {
                 
             // Purchase went through!
@@ -102,7 +109,7 @@ extension StoreKitTheKit: SKPaymentTransactionObserver {
         }
         
         Task {
-            let _ = await purchaseElement(element: purchasable)
+            let _ = await purchaseElement(element: purchasable, options: nil)
         }
         
         return true
