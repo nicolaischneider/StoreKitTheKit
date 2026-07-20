@@ -101,6 +101,14 @@ extension StoreKitTheKit {
             )
             LocalStoreManager.shared.storeSubscriptionData(subscriptionData)
             updatePurchaseDataChanged(true)
+        } else if storeIsAvailable, !LocalStoreManager.shared.getSubscriptionData().subscriptions.isEmpty {
+            // The store answered authoritatively and no subscription is
+            // active: drop stale stored data so the local fallback cannot
+            // keep reporting an entitlement that no longer exists. Never
+            // cleared while the store is unreachable, so offline users keep
+            // their keychain fallback.
+            LocalStoreManager.shared.clearSubscriptionData()
+            updatePurchaseDataChanged(true)
         }
         
         updateStoreState(!state.isEmpty() ? StoreAvailabilityState.available : StoreAvailabilityState.unavailable)

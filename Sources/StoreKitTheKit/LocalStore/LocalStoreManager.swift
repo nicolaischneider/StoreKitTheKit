@@ -59,6 +59,10 @@ class LocalStoreManager: @unchecked Sendable {
         }
     }
     
+    func clearSubscriptionData() {
+        storeSubscriptionData(StoredSubscriptionData())
+    }
+
     func getSubscriptionData() -> StoredSubscriptionData {
         return keychainQueue.sync {
             guard let data = loadFromKeychain(key: subscriptionsKey) else { 
