@@ -77,6 +77,13 @@ let isPremium = StoreKitTheKit.shared.elementWasPurchased(element: premiumItem)
 let wasConsumed = StoreKitTheKit.shared.elementWasPurchased(element: consumableItem)
 ```
 
+Or subscribe to purchase state changes instead of polling. `purchasedProductIds` publishes the bundle ids of all owned purchases whenever entitlements change (purchase, restore, renewal, transaction updates from outside the app):
+```swift
+.onReceive(StoreKitTheKit.shared.$purchasedProductIds) { ids in
+    isPremium = ids.contains(premiumItem.bundleId)
+}
+```
+
 ### 5. Restore purchases
 ```swift
 await StoreKitTheKit.shared.restorePurchases()
