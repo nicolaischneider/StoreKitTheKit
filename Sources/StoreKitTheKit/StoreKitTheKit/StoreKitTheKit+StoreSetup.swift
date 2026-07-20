@@ -86,7 +86,8 @@ extension StoreKitTheKit {
         }
         
         state.updatePurchasedProducts(purchased)
-        
+        updatePurchasedProductIds(Set(purchasedItemsIds))
+
         if !purchasedProductsMatchLocallyStored(productIds: purchasedItemsIds) {
             LocalStoreManager.shared.storePurchasedProductIds(purchasedItemsIds)
             updatePurchaseDataChanged(true)

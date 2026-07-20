@@ -28,7 +28,13 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     }
     
     @Published public var purchaseDataChangedAfterGettingBackOnline = false
-    
+
+    /// Bundle ids of all currently owned purchases, updated whenever the
+    /// entitlement state is re-evaluated (purchase, restore, renewal,
+    /// transaction updates from outside the app). Subscribe to react to
+    /// purchase state changes instead of polling `elementWasPurchased`.
+    @Published public private(set) var purchasedProductIds: Set<String> = []
+
     // MARK: - Thread-Safe Property Access
     
     /// Thread-safe access to products array
@@ -68,6 +74,17 @@ public class StoreKitTheKit: NSObject, @unchecked Sendable {
     func updatePurchaseDataChanged(_ changed: Bool) {
         DispatchQueue.main.async {
             self.purchaseDataChangedAfterGettingBackOnline = changed
+        }
+    }
+
+    /// Thread-safe method to update purchasedProductIds on main thread
+    /// Ensures @Published property updates happen on the correct thread for SwiftUI
+    /// Only publishes if the set actually changed to prevent unnecessary SwiftUI updates
+    func updatePurchasedProductIds(_ ids: Set<String>) {
+        DispatchQueue.main.async {
+            if self.purchasedProductIds != ids {
+                self.purchasedProductIds = ids
+            }
         }
     }
         
