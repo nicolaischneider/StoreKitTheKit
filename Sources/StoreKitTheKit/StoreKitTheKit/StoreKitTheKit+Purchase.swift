@@ -56,6 +56,11 @@ extension StoreKitTheKit {
                 }
                 Logger.store.addLog("Purchase verified: \(transaction)")
                 
+                // Reflect ownership immediately from the transaction in hand:
+                // currentEntitlements can lag behind a completed purchase, so
+                // never make the caller wait on the reconciliation below
+                await self.applyVerifiedTransaction(transaction)
+
                 // Update customer status
                 await self.updateCustomerProductStatus()
                 await transaction.finish()
