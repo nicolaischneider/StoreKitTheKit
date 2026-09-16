@@ -107,6 +107,23 @@ extension StoreKitTheKit {
             }
         }
 
+        // currentEntitlements can also lag right after a non-consumable purchase,
+        // which would drop an item applyVerifiedTransaction just marked as owned.
+        // The product's latest verified, non-revoked transaction is authoritative.
+        for product in state.products where product.type == .nonConsumable {
+            if purchasedItemsIds.contains(product.id) { continue }
+            guard let latest = await product.latestTransaction,
+                  let transaction = try? checkVerified(latest),
+                  transaction.revocationDate == nil else { continue }
+            _ = processTransaction(
+                transaction,
+                purchased: &purchased,
+                purchasedItemsIds: &purchasedItemsIds,
+                activeSubscriptions: &activeSubscriptions
+            )
+            Logger.store.addLog("Recovered \(product.id) via latest transaction - missing in currentEntitlements")
+        }
+
         Logger.store.addLog("Customer product status resolved. Owned: \(purchasedItemsIds.isEmpty ? "none" : purchasedItemsIds.joined(separator: ", "))")
 
         state.updatePurchasedProducts(purchased)
@@ -151,8 +168,12 @@ extension StoreKitTheKit {
         }
         updatePurchasedProductIds(purchasedProductIds.union([transaction.productID]))
 
-        // Persist the expiry right away so the keychain fallback also knows
-        // about the purchase before the next full status update
+        // Persist right away so the keychain fallback also knows about the
+        // purchase before the next full status update
+        if transaction.productType == .nonConsumable {
+            let ids = Set(LocalStoreManager.shared.getPurchasedProductIds()).union([transaction.productID])
+            LocalStoreManager.shared.storePurchasedProductIds(Array(ids))
+        }
         if transaction.productType == .autoRenewable {
             var subscriptions = LocalStoreManager.shared.getSubscriptionData().subscriptions
             subscriptions[transaction.productID] = SubscriptionInfo(
