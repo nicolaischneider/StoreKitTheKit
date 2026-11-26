@@ -85,8 +85,50 @@ extension StoreKitTheKit {
             }
         }
         
+        // currentEntitlements intermittently omits active subscriptions
+        // (documented for sandbox and the Xcode test environment). The
+        // subscription status API stays correct in those windows, so cross-check
+        // it before treating a subscription as not owned.
+        for product in state.products where product.type == .autoRenewable {
+            if purchasedItemsIds.contains(product.id) { continue }
+            guard let statuses = try? await product.subscription?.status else { continue }
+            for status in statuses {
+                guard status.state == .subscribed || status.state == .inGracePeriod,
+                      let transaction = try? checkVerified(status.transaction),
+                      transaction.productID == product.id,
+                      !purchasedItemsIds.contains(transaction.productID) else { continue }
+                _ = processTransaction(
+                    transaction,
+                    purchased: &purchased,
+                    purchasedItemsIds: &purchasedItemsIds,
+                    activeSubscriptions: &activeSubscriptions
+                )
+                Logger.store.addLog("Recovered \(product.id) via subscription status - missing in currentEntitlements")
+            }
+        }
+
+        // currentEntitlements can also lag right after a non-consumable purchase,
+        // which would drop an item applyVerifiedTransaction just marked as owned.
+        // The product's latest verified, non-revoked transaction is authoritative.
+        for product in state.products where product.type == .nonConsumable {
+            if purchasedItemsIds.contains(product.id) { continue }
+            guard let latest = await product.latestTransaction,
+                  let transaction = try? checkVerified(latest),
+                  transaction.revocationDate == nil else { continue }
+            _ = processTransaction(
+                transaction,
+                purchased: &purchased,
+                purchasedItemsIds: &purchasedItemsIds,
+                activeSubscriptions: &activeSubscriptions
+            )
+            Logger.store.addLog("Recovered \(product.id) via latest transaction - missing in currentEntitlements")
+        }
+
+        Logger.store.addLog("Customer product status resolved. Owned: \(purchasedItemsIds.isEmpty ? "none" : purchasedItemsIds.joined(separator: ", "))")
+
         state.updatePurchasedProducts(purchased)
-        
+        updatePurchasedProductIds(Set(purchasedItemsIds))
+
         if !purchasedProductsMatchLocallyStored(productIds: purchasedItemsIds) {
             LocalStoreManager.shared.storePurchasedProductIds(purchasedItemsIds)
             updatePurchaseDataChanged(true)
@@ -100,11 +142,55 @@ extension StoreKitTheKit {
             )
             LocalStoreManager.shared.storeSubscriptionData(subscriptionData)
             updatePurchaseDataChanged(true)
+        } else if storeIsAvailable, !LocalStoreManager.shared.getSubscriptionData().subscriptions.isEmpty {
+            // The store answered authoritatively and no subscription is
+            // active: drop stale stored data so the local fallback cannot
+            // keep reporting an entitlement that no longer exists. Never
+            // cleared while the store is unreachable, so offline users keep
+            // their keychain fallback.
+            LocalStoreManager.shared.clearSubscriptionData()
+            updatePurchaseDataChanged(true)
         }
         
         updateStoreState(!state.isEmpty() ? StoreAvailabilityState.available : StoreAvailabilityState.unavailable)
     }
-    
+
+    /// Marks a just-verified transaction as owned immediately, without waiting
+    /// for a currentEntitlements round trip. Called right after a successful
+    /// purchase so ownership is reflected the moment the purchase completes.
+    @MainActor
+    func applyVerifiedTransaction(_ transaction: Transaction) {
+        guard purchasableManager.productIDExists(transaction.productID) else { return }
+
+        if let product = state.getProduct(withId: transaction.productID),
+           !state.isPurchased(productId: transaction.productID) {
+            state.updatePurchasedProducts(state.purchasedProducts + [product])
+        }
+        updatePurchasedProductIds(purchasedProductIds.union([transaction.productID]))
+
+        // Persist right away so the keychain fallback also knows about the
+        // purchase before the next full status update
+        if transaction.productType == .nonConsumable {
+            let ids = Set(LocalStoreManager.shared.getPurchasedProductIds()).union([transaction.productID])
+            LocalStoreManager.shared.storePurchasedProductIds(Array(ids))
+        }
+        if transaction.productType == .autoRenewable {
+            var subscriptions = LocalStoreManager.shared.getSubscriptionData().subscriptions
+            subscriptions[transaction.productID] = SubscriptionInfo(
+                productID: transaction.productID,
+                expirationDate: transaction.expirationDate ?? Date(),
+                isActive: true,
+                renewalDate: nil,
+                gracePeriodExpirationDate: nil,
+                subscriptionGroupID: transaction.subscriptionGroupID ?? ""
+            )
+            LocalStoreManager.shared.storeSubscriptionData(
+                StoredSubscriptionData(subscriptions: subscriptions, lastUpdated: Date()))
+        }
+
+        Logger.store.addLog("Applied verified transaction for \(transaction.productID) immediately after purchase")
+    }
+
     func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
         switch result {
         case .unverified:
